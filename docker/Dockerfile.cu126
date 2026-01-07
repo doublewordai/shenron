@@ -76,8 +76,8 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
 
 # flashinfer-cubin installs pre-compiled CUDA kernels for vLLM
 # Needed for FP8-MOE models
-RUN uv venv /opt/pagellm/.venv && \
-    . /opt/pagellm/.venv/bin/activate && \
+RUN uv venv /opt/shenron/.venv && \
+    . /opt/shenron/.venv/bin/activate && \
     uv pip install vllm==0.13.0 --torch-backend=auto && \
     uv pip install flashinfer-cubin flashinfer-python
 
@@ -91,7 +91,7 @@ COPY --from=deepep-builder /opt/nvshmem-3.2.5 /opt/nvshmem-3.2.5
 COPY --from=deepep-builder /tmp/gdrcopy-2.5.1/packages/*.deb /tmp/gdrcopy/
 COPY --from=deepep-builder /opt/conda/lib/python3.11/site-packages/deep_ep* /opt/conda/lib/python3.11/site-packages/
 COPY --from=rust-builder /build/target/release/onwards /usr/local/bin/onwards
-COPY --from=python-deps /opt/pagellm/.venv /opt/pagellm/.venv
+COPY --from=python-deps /opt/shenron/.venv /opt/shenron/.venv
 COPY --from=python-deps /root/.local/bin/uv /usr/local/bin/uv
 
 # Install minimal runtime dependencies

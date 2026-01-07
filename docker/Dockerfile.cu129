@@ -79,8 +79,8 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
 
 # flashinfer-cubin installs pre-compiled CUDA kernels for vLLM
 # Needed for FP8-MOE models
-RUN uv venv /opt/batchbench/.venv && \
-    . /opt/batchbench/.venv/bin/activate && \
+RUN uv venv /opt/shenron/.venv && \
+    . /opt/shenron/.venv/bin/activate && \
     uv pip install vllm==0.13.0 --torch-backend=auto && \
     uv pip install flashinfer-cubin==0.5.3 flashinfer-python==0.5.3 && \
     uv pip install flashinfer-jit-cache==0.5.3 --index-url https://flashinfer.ai/whl/cu129
@@ -96,7 +96,7 @@ COPY --from=deepep-builder /opt/nvshmem-3.2.5 /opt/nvshmem-3.2.5
 COPY --from=deepep-builder /tmp/gdrcopy-2.5.1/packages/*.deb /tmp/gdrcopy/
 COPY --from=deepep-builder /opt/conda/lib/python3.11/site-packages/deep_ep* /opt/conda/lib/python3.11/site-packages/
 COPY --from=rust-builder /build/target/release/onwards /usr/local/bin/onwards
-COPY --from=python-deps /opt/batchbench/.venv /opt/batchbench/.venv
+COPY --from=python-deps /opt/shenron/.venv /opt/shenron/.venv
 COPY --from=python-deps /root/.local/bin/uv /usr/local/bin/uv
 
 # Install minimal runtime dependencies
@@ -111,7 +111,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # NVSHMEM Environment
 ENV NVSHMEM_HOME=/opt/nvshmem-3.2.5
 ENV LD_LIBRARY_PATH=${NVSHMEM_HOME}/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
-ENV PATH="/opt/batchbench/.venv/bin:/opt/hydra/bin:/usr/local/cuda/bin:${PATH}"
+ENV PATH="/opt/shenron/.venv/bin:/opt/hydra/bin:/usr/local/cuda/bin:${PATH}"
 ENV VLLM_HAS_FLASHINFER_CUBIN=1
 
 # DeepEP installation - TODO: pull into the deepep-builder stage
