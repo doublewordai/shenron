@@ -93,7 +93,7 @@ echo "Onwards will start with PID $ONWARDS_PID after vLLM is ready"
 echo "=== Starting vLLM server ==="
 
 # Activate the Python environment
-source /opt/pagellm/.venv/bin/activate
+source /opt/shenron/.venv/bin/activate
 
 # Standard vLLM parameters (you can edit these as needed)
 VLLM_ARGS=(
