@@ -1,0 +1,69 @@
+# ============================================================
+# Stage 1: vLLM/Python Dependencies (slow, cache separately)
+# ============================================================
+FROM pytorch/pytorch:2.9.0-cuda13.0-cudnn9-devel AS python-deps
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends curl
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
+ && ln -s /root/.local/bin/uv /usr/local/bin/uv
+
+# flashinfer-cubin installs pre-compiled CUDA kernels for vLLM
+# Needed for FP8-MOE models
+RUN uv venv /opt/shenron/.venv && \
+    . /opt/shenron/.venv/bin/activate && \
+    uv pip install nvidia-nvshmem-cu13 && \
+    uv pip install "https://github.com/vllm-project/vllm/releases/download/v0.13.0/vllm-0.13.0%2Bcu130-cp38-abi3-manylinux_2_35_x86_64.whl" \
+        --index-strategy unsafe-best-match \
+        --extra-index-url https://download.pytorch.org/whl/cu130 && \
+    uv pip install flashinfer-cubin==0.5.3
+
+# ============================================================
+# Stage 2: Rust Build (onwards binary)
+# ============================================================
+FROM rust:1.88 AS rust-builder
+
+WORKDIR /build
+
+# Copy the onwards submodule source
+COPY onwards/ ./
+
+# Build the binary in release mode
+RUN cargo build --release
+
+# ============================================================
+# Stage 3: Final Runtime Image
+# ============================================================
+FROM pytorch/pytorch:2.9.0-cuda13.0-cudnn9-devel AS runtime
+
+COPY --from=python-deps /opt/shenron/.venv /opt/shenron/.venv
+COPY --from=python-deps /root/.local/bin/uv /usr/local/bin/uv
+COPY --from=rust-builder /build/target/release/onwards /usr/local/bin/onwards
+
+# Install minimal runtime dependencies
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+    librdmacm-dev rdma-core libfabric-dev libibverbs-dev \
+    git curl openssh-server librdmacm1 libibverbs1 libfabric1
+
+# Environment - NVSHMEM is now installed via pip
+ENV PATH="/opt/shenron/.venv/bin:${PATH}"
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+ENV VLLM_HAS_FLASHINFER_CUBIN=1
+
+# DeepEP installation - pip-installed NVSHMEM is auto-discovered
+# Symlink CCCL headers so cuda/std/tuple is found (CUDA 13.0 relocated these)
+RUN ln -s /usr/local/cuda/include/cccl/cuda /usr/local/cuda/include/cuda || true && \
+    git clone https://github.com/deepseek-ai/DeepEP /deepep && \
+    cd /deepep && \
+    python setup.py install
+
+# SSH configuration
+RUN mkdir -p /var/run/sshd /root/.ssh && \
+    chmod 700 /root/.ssh && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config && \
+    sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd && \
+    ssh-keygen -A

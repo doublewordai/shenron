@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Default values
-MODELNAME=${MODELNAME:-"Qwen/Qwen3-0.6B"}
+MODELNAME=${MODELNAME:-"Qwen/Qwen3-VL-235B-A22B-Instruct-FP8"}
 APIKEY=${APIKEY:-"sk-"}
 VLLM_PORT=${VLLM_PORT:-8000}
 ONWARDS_PORT=${ONWARDS_PORT:-3000}
@@ -76,34 +76,18 @@ VLLM_ARGS=(
   --host "127.0.0.1"
   --served-model-name "$MODELNAME"
   --gpu-memory-utilization 0.9
-  --tensor-parallel-size 1
-  --enable-expert-parallel
+  --tensor-parallel-size 2
   --trust-remote-code
   --limit-mm-per-prompt.video 0 # disable video inputs
   --async-scheduling
+  --scheduling-policy "priority"
 )
-
-wait_for_vllm() {
-  echo "Checking if vLLM is ready on port $VLLM_PORT..."
-  for i in $(seq 1 "$WAIT_ATTEMPTS"); do
-    if curl -s "http://localhost:$VLLM_PORT/health" >/dev/null 2>&1 || \
-       curl -s "http://localhost:$VLLM_PORT/v1/models" >/dev/null 2>&1; then
-      echo "vLLM is ready!"
-      return 0
-    fi
-    echo "Waiting for vLLM... (attempt $i/$WAIT_ATTEMPTS)"
-    sleep 5
-  done
-  echo "Warning: vLLM did not become ready in time"
-  return 1
-}
 
 start_vllm() {
   echo "=== Starting vLLM server ==="
   echo "Command: vllm serve ${VLLM_ARGS[*]}"
   # NOTE: keep logs for post-mortem
   VLLM_LOGGING_LEVEL=INFO \
-  VLLM_USE_FLASHINFER_MOE_FP8=1 \
     VLLM_FLASHINFER_MOE_BACKEND=throughput \
     vllm serve "${VLLM_ARGS[@]}" >> /var/log/vllm.log 2>&1 &
   VLLM_PID=$!
@@ -132,16 +116,6 @@ VLLM_SUP_PID=$!
 
 (
   while true; do
-    # Only start onwards once vLLM looks up (avoid immediate spam/restarts)
-    wait_for_vllm || true
-
-    # If an old onwards is still around, stop it before restarting
-    if [ -n "${ONWARDS_PID:-}" ] && kill -0 "$ONWARDS_PID" 2>/dev/null; then
-      kill -TERM "$ONWARDS_PID" 2>/dev/null || true
-      sleep 1
-      kill -KILL "$ONWARDS_PID" 2>/dev/null || true
-    fi
-
     start_onwards
     wait "$ONWARDS_PID" || true
     code=$?
@@ -186,4 +160,3 @@ echo ""
 # Keep PID 1 alive by waiting on SSH (if SSH dies, container exits)
 wait "$SSH_PID"
 echo "SSH daemon exited; shutting down..."
-cleanup

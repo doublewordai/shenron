@@ -40,7 +40,7 @@ show_usage() {
     echo "  --registry REGISTRY   Docker registry (default: docker.io)"
     echo "  --repo REPOSITORY     Repository name (default: $REPOSITORY)"
     echo "  --platforms PLATFORMS Build platforms (default: $PLATFORMS)"
-    echo "  --cuda-version VER    CUDA version to build (126, 129, or 'all')"
+    echo "  --cuda-version VER    CUDA version to build (126, 129, 130, or 'all')"
     echo "  --build-arg ARG       Additional build arguments"
     echo "  --dry-run            Show what would be built without building"
     echo "  --help               Show this help message"
@@ -205,7 +205,7 @@ get_git_info() {
 
 # Main function
 main() {
-    local cuda_versions=("126" "129")
+    local cuda_versions=("126" "129" "130")
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -232,14 +232,14 @@ main() {
                 ;;
             --cuda-version)
                 case "$2" in
-                    "126"|"129")
+                    "126"|"129"|"130")
                         cuda_versions=("$2")
                         ;;
                     "all")
-                        cuda_versions=("126" "129")
+                        cuda_versions=("126" "129" "130")
                         ;;
                     *)
-                        print_error "Invalid CUDA version: $2 (supported: 126, 129, all)"
+                        print_error "Invalid CUDA version: $2 (supported: 126, 129, 130, all)"
                         exit 1
                         ;;
                 esac
