@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Default values
-MODELNAME=${MODELNAME:-"Qwen/Qwen3-VL-235B-A22B-Instruct-FP8"}
+MODELNAME=${MODELNAME:-"Qwen/Qwen3-0.6B"}
 APIKEY=${APIKEY:-"sk-"}
 VLLM_PORT=${VLLM_PORT:-8000}
 ONWARDS_PORT=${ONWARDS_PORT:-3000}
@@ -97,10 +97,8 @@ VLLM_ARGS=(
   --port "$VLLM_PORT"
   --host "127.0.0.1"
   --served-model-name "$MODELNAME"
-  --gpu-memory-utilization 0.9
-  --tensor-parallel-size 2
+  --gpu-memory-utilization 0.7
   --trust-remote-code
-  --limit-mm-per-prompt.video 0 # disable video inputs
   --async-scheduling
   --scheduling-policy "priority"
   --enable-auto-tool-choice

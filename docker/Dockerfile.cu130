@@ -47,7 +47,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
     librdmacm-dev rdma-core libfabric-dev libibverbs-dev \
-    git curl openssh-server librdmacm1 libibverbs1 libfabric1
+    git curl openssh-server librdmacm1 libibverbs1 libfabric1 \
+    prometheus
 
 # Environment - NVSHMEM is now installed via pip
 ENV PATH="/opt/shenron/.venv/bin:${PATH}"

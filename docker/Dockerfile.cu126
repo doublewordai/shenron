@@ -98,6 +98,7 @@ COPY --from=python-deps /root/.local/bin/uv /usr/local/bin/uv
 RUN apt-get update && apt-get install -y --no-install-recommends \
     librdmacm-dev rdma-core libfabric-dev libibverbs-dev \
     git curl openssh-server librdmacm1 libibverbs1 libfabric1 \
+    prometheus \
  && dpkg -i /tmp/gdrcopy/libgdrapi_*.deb \
  && rm -rf /tmp/gdrcopy /var/lib/apt/lists/*
 
