@@ -52,18 +52,6 @@ RUN set -eux; \
         rm -rf /tmp/nvshmem_src_3.2.5-1.txz
 
 
-# ============================================================
-# Stage 2: Rust Build (onwards binary)
-# ============================================================
-FROM rust:1.88 AS rust-builder
-
-WORKDIR /build
-
-# Copy the onwards submodule source
-COPY onwards/ ./
-
-# Build the binary in release mode
-RUN cargo build --release
 
 # ============================================================
 # Stage 3: vLLM/Python Dependencies (slow, cache separately)
@@ -95,7 +83,6 @@ FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel AS runtime
 COPY --from=deepep-builder /opt/nvshmem-3.2.5 /opt/nvshmem-3.2.5
 COPY --from=deepep-builder /tmp/gdrcopy-2.5.1/packages/*.deb /tmp/gdrcopy/
 COPY --from=deepep-builder /opt/conda/lib/python3.11/site-packages/deep_ep* /opt/conda/lib/python3.11/site-packages/
-COPY --from=rust-builder /build/target/release/onwards /usr/local/bin/onwards
 COPY --from=python-deps /opt/shenron/.venv /opt/shenron/.venv
 COPY --from=python-deps /root/.local/bin/uv /usr/local/bin/uv
 

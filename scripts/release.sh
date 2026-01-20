@@ -24,7 +24,7 @@ show_usage() {
     echo "This script combines version bumping and Docker image building:"
     echo "  1. Bumps the version (major/minor/patch)"
     echo "  2. Creates git commit and tag"
-    echo "  3. Builds Docker images for all CUDA versions"
+    echo "  3. Builds Docker images for all CUDA versions, plus onwards & prometheus"
     echo "  4. Optionally pushes to registry"
     echo ""
     echo "Options:"
