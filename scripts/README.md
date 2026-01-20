@@ -61,7 +61,7 @@ Manages semantic versioning with git integration.
 
 ### `build-release.sh`
 
-Builds Docker containers for different CUDA versions.
+Builds Docker containers for different CUDA versions, plus the `onwards` and `prometheus` containers.
 
 **Usage:**
 ```bash
@@ -73,7 +73,7 @@ Builds Docker containers for different CUDA versions.
 - `--latest` - Also tag as 'latest'
 - `--registry REGISTRY` - Custom registry (default: docker.io)
 - `--repo REPOSITORY` - Repository name
-- `--cuda-version VER` - Build specific CUDA version (126, 129, or 'all')
+- `--cuda-version VER` - Build specific CUDA version (126, 129, 130, or 'all')
 - `--platforms PLATFORMS` - Target platforms
 - `--build-arg ARG` - Additional build arguments
 - `--dry-run` - Show what would be built
@@ -145,16 +145,22 @@ Combined workflow that bumps version and builds containers.
 
 ## Docker Images
 
-The build system creates images with the following naming convention:
+The build system creates images with the following naming conventions:
 
 ```
 tytn/shenron:VERSION-cuCUDA
+tytn/shenron:VERSION-onwards
+tytn/shenron:VERSION-prometheus
 ```
 
 **Examples:**
 - `tytn/shenron:1.2.3-cu126`
 - `tytn/shenron:1.2.3-cu129`
+- `tytn/shenron:1.2.3-cu130`
+- `tytn/shenron:1.2.3-onwards`
+- `tytn/shenron:1.2.3-prometheus`
 - `tytn/shenron:latest-cu126`
+- `tytn/shenron:latest-onwards`
 
 ## Configuration
 
@@ -162,7 +168,7 @@ tytn/shenron:VERSION-cuCUDA
 
 - **Registry:** `docker.io`
 - **Repository:** `tytn/shenron`
-- **CUDA Versions:** 126, 129
+- **CUDA Versions:** 126, 129, 130
 - **Platforms:** `linux/amd64`
 
 ### Custom Registry

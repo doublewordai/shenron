@@ -21,26 +21,12 @@ RUN uv venv /opt/shenron/.venv && \
     uv pip install flashinfer-cubin==0.5.3
 
 # ============================================================
-# Stage 2: Rust Build (onwards binary)
-# ============================================================
-FROM rust:1.88 AS rust-builder
-
-WORKDIR /build
-
-# Copy the onwards submodule source
-COPY onwards/ ./
-
-# Build the binary in release mode
-RUN cargo build --release
-
-# ============================================================
 # Stage 3: Final Runtime Image
 # ============================================================
 FROM pytorch/pytorch:2.9.0-cuda13.0-cudnn9-devel AS runtime
 
 COPY --from=python-deps /opt/shenron/.venv /opt/shenron/.venv
 COPY --from=python-deps /root/.local/bin/uv /usr/local/bin/uv
-COPY --from=rust-builder /build/target/release/onwards /usr/local/bin/onwards
 
 # Install minimal runtime dependencies
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \

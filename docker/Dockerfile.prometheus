@@ -1,0 +1,3 @@
+# tytn/shenron:${VERSION}-prometheus
+FROM prom/prometheus:v2.51.2
+EXPOSE 9090

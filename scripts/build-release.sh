@@ -41,6 +41,7 @@ show_usage() {
     echo "  --repo REPOSITORY     Repository name (default: $REPOSITORY)"
     echo "  --platforms PLATFORMS Build platforms (default: $PLATFORMS)"
     echo "  --cuda-version VER    CUDA version to build (126, 129, 130, or 'all')"
+    echo "                      (always also builds: onwards, prometheus)"
     echo "  --build-arg ARG       Additional build arguments"
     echo "  --dry-run            Show what would be built without building"
     echo "  --help               Show this help message"
@@ -185,6 +186,87 @@ build_docker_image() {
     fi
 }
 
+# Function to build non-CUDA Docker images (e.g. onwards, prometheus)
+build_named_image() {
+    local version="$1"
+    local name="$2"
+    local dockerfile="$3"
+    local push="$4"
+    local latest="$5"
+    local dry_run="$6"
+    local platforms="$7"
+    local registry="$8"
+    local repository="$9"
+    local build_args="${10}"
+
+    local image_name="$repository"
+    if [ -n "$registry" ]; then
+        image_name="$registry/$repository"
+    fi
+
+    local tags=(
+        "$image_name:$version-$name"
+    )
+
+    if [ "$latest" = "true" ]; then
+        tags+=("$image_name:latest-$name")
+    fi
+
+    local tag_args=""
+    for tag in "${tags[@]}"; do
+        tag_args="$tag_args --tag $tag"
+    done
+
+    local platform_args=""
+    if [ -n "$platforms" ]; then
+        platform_args="--platform $platforms"
+    fi
+
+    local push_args=""
+    if [ "$push" = "true" ]; then
+        push_args="--push"
+    else
+        push_args="--load"
+    fi
+
+    local build_cmd="docker buildx build"
+    build_cmd="$build_cmd --file $dockerfile"
+    build_cmd="$build_cmd $tag_args"
+    build_cmd="$build_cmd $platform_args"
+    build_cmd="$build_cmd $push_args"
+    build_cmd="$build_cmd $build_args"
+    build_cmd="$build_cmd $ROOT_DIR"
+
+    print_info "Building Docker image: $name"
+    print_info "  Dockerfile: $dockerfile"
+    print_info "  Tags: ${tags[*]}"
+    print_info "  Platforms: $platforms"
+
+    if [ "$dry_run" = "true" ]; then
+        print_info "Would run: $build_cmd"
+        return 0
+    fi
+
+    print_info "Running: $build_cmd"
+    if eval "$build_cmd"; then
+        print_success "Successfully built Docker image: $name"
+
+        if [ "$push" = "true" ]; then
+            print_success "Successfully pushed to registry"
+        else
+            print_success "Image built locally (use --push to push to registry)"
+        fi
+
+        print_info "Built tags:"
+        for tag in "${tags[@]}"; do
+            echo "  - $tag"
+        done
+    else
+        print_error "Failed to build Docker image: $name"
+        exit 1
+    fi
+}
+
 # Function to get git commit info
 get_git_info() {
     local commit_hash=""
@@ -289,6 +371,7 @@ main() {
     echo "  Registry: ${REGISTRY:-docker.io}"
     echo "  Repository: $REPOSITORY"
     echo "  CUDA versions: ${cuda_versions[*]}"
+    echo "  Extra images: onwards prometheus"
     echo "  Platforms: $PLATFORMS"
     echo "  Push to registry: $PUSH"
     echo "  Tag as latest: $LATEST"
@@ -335,6 +418,31 @@ main() {
         
         echo ""
     done
+
+    # Build additional images
+    local extra_images=("onwards" "prometheus")
+    for name in "${extra_images[@]}"; do
+        local dockerfile="$ROOT_DIR/docker/Dockerfile.$name"
+
+        if [ ! -f "$dockerfile" ]; then
+            print_error "Dockerfile not found: $dockerfile"
+            continue
+        fi
+
+        build_named_image \
+            "$version" \
+            "$name" \
+            "$dockerfile" \
+            "$PUSH" \
+            "$LATEST" \
+            "$DRY_RUN" \
+            "$PLATFORMS" \
+            "$REGISTRY" \
+            "$REPOSITORY" \
+            "$BUILD_ARGS"
+
+        echo ""
+    done
     
     if [ "$DRY_RUN" = "true" ]; then
         print_success "Dry run completed successfully"
@@ -343,14 +451,22 @@ main() {
         
         if [ "$PUSH" = "true" ]; then
             print_info "Images pushed to registry:"
+            local image_name="$REPOSITORY"
+            if [ -n "$REGISTRY" ]; then
+                image_name="$REGISTRY/$REPOSITORY"
+            fi
+
             for cuda_version in "${cuda_versions[@]}"; do
-                local image_name="$REPOSITORY"
-                if [ -n "$REGISTRY" ]; then
-                    image_name="$REGISTRY/$REPOSITORY"
-                fi
                 echo "  - $image_name:$version-cu$cuda_version"
                 if [ "$LATEST" = "true" ]; then
                     echo "  - $image_name:latest-cu$cuda_version"
+                fi
+            done
+
+            for name in "${extra_images[@]}"; do
+                echo "  - $image_name:$version-$name"
+                if [ "$LATEST" = "true" ]; then
+                    echo "  - $image_name:latest-$name"
                 fi
             done
         else
