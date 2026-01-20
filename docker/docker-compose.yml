@@ -2,10 +2,7 @@ name: shenron-cu126
 
 services:
   vllm:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.cu126
-    image: tytn/shenron:0.1.1-vllm-cu126
+    image: tytn/shenron:0.2.0-vllm-cu126
     command: ["bash","-lc","source /opt/shenron/.venv/bin/activate && exec bash /generated/vllm_start.sh"]
     volumes:
       - $HOME/.cache/huggingface:/root/.cache/huggingface
@@ -17,10 +14,7 @@ services:
             - capabilities: [gpu]
 
   onwards:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.onwards
-    image: tytn/shenron:0.1.1-onwards
+    image: tytn/shenron:0.2.0-onwards
     depends_on:
       - vllm
     command: ["bash","-lc","exec bash /generated/onwards_start.sh"]
@@ -30,10 +24,7 @@ services:
       - "${ONWARDS_PORT:-3000}:3000"
 
   prometheus:
-    build:
-      context: .
-      dockerfile: Dockerfile.prometheus
-    image: tytn/shenron:0.1.1-prometheus
+    image: tytn/shenron:0.2.0-prometheus
     depends_on:
       - vllm
     volumes:
