@@ -1,8 +1,15 @@
 name: shenron-cu126
 
+x-common-ulimits: &common-ulimits
+  nofile:
+    soft: ${ULIMIT_NOFILE_SOFT:-65535}
+    hard: ${ULIMIT_NOFILE_HARD:-524288}
+
 services:
   vllm:
     image: tytn/shenron:0.2.0-cu126
+    ulimits: *common-ulimits
+    restart: unless-stopped
     command: ["bash","-lc","source /opt/shenron/.venv/bin/activate && exec bash /generated/vllm_start.sh"]
     volumes:
       - $HOME/.cache/huggingface:/root/.cache/huggingface
@@ -15,6 +22,8 @@ services:
 
   onwards:
     image: tytn/shenron:0.2.0-onwards
+    ulimits: *common-ulimits
+    restart: unless-stopped
     depends_on:
       - vllm
     command: ["bash","-lc","exec bash /generated/onwards_start.sh"]
