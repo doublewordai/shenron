@@ -21,16 +21,14 @@ services:
             - capabilities: [gpu]
 
   onwards:
-    image: tytn/shenron:0.2.0-onwards
-    ulimits: *common-ulimits
-    restart: unless-stopped
+    image: ghcr.io/doublewordai/onwards:latest
     depends_on:
-      - vllm
-    command: ["bash","-lc","exec bash /generated/onwards_start.sh"]
+    - vllm
+    command: ["--targets", "/generated/onwards_config.json"]
     volumes:
-      - ./.generated:/generated:ro
+    - ./.generated:/generated:ro
     ports:
-      - "${ONWARDS_PORT:-3000}:3000"
+    - "${ONWARDS_PORT:-3000}:3000"
 
   prometheus:
     image: tytn/shenron:0.2.0-prometheus

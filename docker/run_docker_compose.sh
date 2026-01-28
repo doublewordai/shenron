@@ -8,7 +8,7 @@ export CU=${CU:-126}
 COMPOSE_FILE=${COMPOSE_FILE:-"$SCRIPT_DIR/docker-compose.yml"}
 
 # Common runtime config
-export SHENRON_VERSION=${SHENRON_VERSION:-0.1.1}
+export SHENRON_VERSION=${SHENRON_VERSION:-0.2.0}
 export MODELNAME=${MODELNAME:-Qwen/Qwen3-0.6B}
 export APIKEY=${APIKEY:-sk-}
 export VLLM_FLASHINFER_MOE_BACKEND=${VLLM_FLASHINFER_MOE_BACKEND:-throughput}
@@ -25,28 +25,27 @@ export PROMETHEUS_PORT=${PROMETHEUS_PORT:-9090}
 
 # Edit this array to control how vLLM is launched.
 VLLM_ARGS=(
-  --model "${MODELNAME}"
-  --port "${VLLM_PORT}"
-  --host "${VLLM_HOST}"
-  --gpu-memory-utilization 0.7
-  --tensor-parallel-size 1
-  --trust-remote-code
-  --limit-mm-per-prompt.video 0
-  --async-scheduling
-  --scheduling-policy "priority"
-  --enable-auto-tool-choice
-  --tool-call-parser "hermes"
-  --generation-config "auto"
-  --override-generation-config \'{
+    --model "${MODELNAME}"
+    --port "${VLLM_PORT}"
+    --host "${VLLM_HOST}"
+    --gpu-memory-utilization 0.7
+    --tensor-parallel-size 1
+    --trust-remote-code
+    --limit-mm-per-prompt.video 0
+    --async-scheduling
+    --scheduling-policy "priority"
+    --enable-auto-tool-choice
+    --tool-call-parser "hermes"
+    --generation-config "auto"
+    --override-generation-config \'{
     \"max_new_tokens\": 16384,
     \"presence_penalty\": 1.5,
     \"temperature\": 0.7,
     \"top_p\": 0.8,
     \"top_k\": 20,
     \"min_p\": 0
-  }\'
+    }\'
 )
-
 
 mkdir -p "$SCRIPT_DIR/.generated"
 
@@ -64,7 +63,7 @@ cat >"${_tmp_onwards}" <<EOF_ONWARDS
 }
 EOF_ONWARDS
 chmod 0644 "${_tmp_onwards}"
-mv -f "${_tmp_onwards}" "$SCRIPT_DIR/.generated/onwards_targets.json"
+mv -f "${_tmp_onwards}" "$SCRIPT_DIR/.generated/onwards_config.json"
 
 # Generate Prometheus config (bind-mounted into prometheus) [atomic]
 _tmp_prom=$(mktemp "$SCRIPT_DIR/.generated/prometheus.yml.XXXXXX")
@@ -87,7 +86,7 @@ cat >"${_tmp_onwards_start}" <<EOF_ONWARDS_START
 #!/usr/bin/env bash
 set -euo pipefail
 
-exec onwards --targets /generated/onwards_targets.json --port "${ONWARDS_PORT}"
+exec onwards --targets /generated/onwards_config.json --port "${ONWARDS_PORT}"
 EOF_ONWARDS_START
 chmod +x "${_tmp_onwards_start}"
 mv -f "${_tmp_onwards_start}" "$SCRIPT_DIR/.generated/onwards_start.sh"
