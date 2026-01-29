@@ -46,3 +46,6 @@ services:
       - prometheus
     env_file:
       - ./.generated/scouter_reporter.env
+    # uncomment to use host.docker.internal for scouter collector instance
+    # extra_hosts:
+    # - "host.docker.internal:host-gateway"

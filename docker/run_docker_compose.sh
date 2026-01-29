@@ -24,7 +24,8 @@ export ONWARDS_PORT=${ONWARDS_PORT:-3000}
 export PROMETHEUS_PORT=${PROMETHEUS_PORT:-9090}
 
 # Scouter reporter runtime config
-export SCOUTER_COLLECTOR_INSTANCE=${SCOUTER_COLLECTOR_INSTANCE:-collector}
+export SCOUTER_COLLECTOR_INSTANCE=${SCOUTER_COLLECTOR_INSTANCE:-"host.docker.internal"} # needed for localhost outside of Docker network
+export SCOUTER_COLLECTOR_URL=${SCOUTER_COLLECTOR_URL:-"http://${SCOUTER_COLLECTOR_INSTANCE}:4321"}
 export SCOUTER_REPORTER_INTERVAL=${SCOUTER_REPORTER_INTERVAL:-10}
 
 # Edit this array to control how vLLM is launched.
@@ -89,7 +90,7 @@ _tmp_scouter_env=$(mktemp "$SCRIPT_DIR/.generated/scouter_reporter.env.XXXXXX")
 cat >"${_tmp_scouter_env}" <<EOF_SCOUTER_ENV
 SCOUTER_MODE=reporter
 PROMETHEUS_URL=http://prometheus:9090
-COLLECTOR_URL=http://${SCOUTER_COLLECTOR_INSTANCE}:4321
+COLLECTOR_URL=${SCOUTER_COLLECTOR_URL}
 REPORTER_INTERVAL=${SCOUTER_REPORTER_INTERVAL}
 MODEL_NAME=${MODELNAME}
 EOF_SCOUTER_ENV
