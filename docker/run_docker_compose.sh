@@ -23,6 +23,10 @@ export ONWARDS_PORT=${ONWARDS_PORT:-3000}
 # Prometheus runtime config
 export PROMETHEUS_PORT=${PROMETHEUS_PORT:-9090}
 
+# Scouter reporter runtime config
+export SCOUTER_COLLECTOR_INSTANCE=${SCOUTER_COLLECTOR_INSTANCE:-collector}
+export SCOUTER_REPORTER_INTERVAL=${SCOUTER_REPORTER_INTERVAL:-10}
+
 # Edit this array to control how vLLM is launched.
 VLLM_ARGS=(
     --model "${MODELNAME}"
@@ -79,6 +83,18 @@ scrape_configs:
 EOF_PROM
 chmod 0644 "${_tmp_prom}"
 mv -f "${_tmp_prom}" "$SCRIPT_DIR/.generated/prometheus.yml"
+
+# Generate Scouter reporter env (loaded by docker compose) [atomic]
+_tmp_scouter_env=$(mktemp "$SCRIPT_DIR/.generated/scouter_reporter.env.XXXXXX")
+cat >"${_tmp_scouter_env}" <<EOF_SCOUTER_ENV
+SCOUTER_MODE=reporter
+PROMETHEUS_URL=http://prometheus:9090
+COLLECTOR_URL=http://${SCOUTER_COLLECTOR_INSTANCE}:4321
+REPORTER_INTERVAL=${SCOUTER_REPORTER_INTERVAL}
+MODEL_NAME=${MODELNAME}
+EOF_SCOUTER_ENV
+chmod 0644 "${_tmp_scouter_env}"
+mv -f "${_tmp_scouter_env}" "$SCRIPT_DIR/.generated/scouter_reporter.env"
 
 # Generate Onwards start script (bind-mounted into onwards) [atomic]
 _tmp_onwards_start=$(mktemp "$SCRIPT_DIR/.generated/onwards_start.sh.XXXXXX")

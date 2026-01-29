@@ -38,3 +38,11 @@ services:
       - ./.generated/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
+
+  scouter-reporter:
+    image: ghcr.io/doublewordai/scouter:latest
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    env_file:
+      - ./.generated/scouter_reporter.env
