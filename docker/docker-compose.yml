@@ -40,7 +40,7 @@ services:
       - "${PROMETHEUS_PORT:-9090}:9090"
 
   scouter-reporter:
-    image: scouter:local # ghcr.io/doublewordai/scouter:latest
+    image: ghcr.io/doublewordai/scouter:latest
     restart: unless-stopped
     depends_on:
       - prometheus

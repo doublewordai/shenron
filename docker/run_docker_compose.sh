@@ -27,7 +27,7 @@ export PROMETHEUS_PORT=${PROMETHEUS_PORT:-9090}
 export SCOUTER_COLLECTOR_INSTANCE=${SCOUTER_COLLECTOR_INSTANCE:-"host.docker.internal"} # needed for localhost outside of Docker network
 export SCOUTER_COLLECTOR_URL=${SCOUTER_COLLECTOR_URL:-"http://${SCOUTER_COLLECTOR_INSTANCE}:4321"}
 export SCOUTER_REPORTER_INTERVAL=${SCOUTER_REPORTER_INTERVAL:-10}
-
+export SCOUTER_INGEST_API_KEY=${SCOUTER_INGEST_API_KEY:-"api-key"} # Optional API key for Scouter collector
 # Edit this array to control how vLLM is launched.
 VLLM_ARGS=(
     --model "${MODELNAME}"
