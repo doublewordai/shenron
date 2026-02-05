@@ -1,4 +1,4 @@
-name: shenron-cu126
+name: shenron-cu${CU}
 
 x-common-ulimits: &common-ulimits
   nofile:
@@ -7,7 +7,7 @@ x-common-ulimits: &common-ulimits
 
 services:
   vllm:
-    image: tytn/shenron:0.2.0-cu126
+    image: tytn/shenron:0.2.0-cu${CU}
     ulimits: *common-ulimits
     restart: unless-stopped
     command: ["bash","-lc","source /opt/shenron/.venv/bin/activate && exec bash /generated/vllm_start.sh"]

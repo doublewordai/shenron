@@ -12,6 +12,8 @@ export SHENRON_VERSION=${SHENRON_VERSION:-0.2.0}
 export MODELNAME=${MODELNAME:-Qwen/Qwen3-0.6B}
 export APIKEY=${APIKEY:-sk-}
 export VLLM_FLASHINFER_MOE_BACKEND=${VLLM_FLASHINFER_MOE_BACKEND:-throughput}
+export TP_SIZE=${TP_SIZE:-1}
+export MEM_UTIL=${MEM_UTIL:-0.7}
 
 # vLLM runtime config (edit freely; no rebuild)
 export VLLM_PORT=${VLLM_PORT:-8000}
@@ -33,8 +35,8 @@ VLLM_ARGS=(
     --model "${MODELNAME}"
     --port "${VLLM_PORT}"
     --host "${VLLM_HOST}"
-    --gpu-memory-utilization 0.7
-    --tensor-parallel-size 1
+    --gpu-memory-utilization "${MEM_UTIL}"
+    --tensor-parallel-size "${TP_SIZE}"
     --trust-remote-code
     --limit-mm-per-prompt.video 0
     --async-scheduling
