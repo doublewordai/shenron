@@ -1,4 +1,4 @@
-name: shenron-cu126
+name: shenron-cu${CU:-126}
 
 x-common-ulimits: &common-ulimits
   nofile:
@@ -7,7 +7,7 @@ x-common-ulimits: &common-ulimits
 
 services:
   vllm:
-    image: tytn/shenron:0.2.0-cu126
+    image: tytn/shenron:${SHENRON_VERSION:-0.1.0}-cu${CU:-126}
     ulimits: *common-ulimits
     restart: unless-stopped
     command: ["bash","-lc","source /opt/shenron/.venv/bin/activate && exec bash /generated/vllm_start.sh"]
@@ -31,7 +31,7 @@ services:
     - "${ONWARDS_PORT:-3000}:3000"
 
   prometheus:
-    image: tytn/shenron:0.2.0-prometheus
+    image: prom/prometheus:v2.51.2
     depends_on:
       - vllm
     volumes:

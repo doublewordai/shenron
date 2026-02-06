@@ -2,13 +2,20 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
+
+DRY_RUN=false
+if [[ "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=true
+  shift
+fi
 
 # Choose CUDA variant via CU=126|129|130
 export CU=${CU:-126}
 COMPOSE_FILE=${COMPOSE_FILE:-"$SCRIPT_DIR/docker-compose.yml"}
 
 # Common runtime config
-export SHENRON_VERSION=${SHENRON_VERSION:-0.2.0}
+export SHENRON_VERSION=${SHENRON_VERSION:-"$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"}
 export MODELNAME=${MODELNAME:-Qwen/Qwen3-0.6B}
 export APIKEY=${APIKEY:-sk-}
 export VLLM_FLASHINFER_MOE_BACKEND=${VLLM_FLASHINFER_MOE_BACKEND:-throughput}
@@ -125,4 +132,9 @@ mv -f "${_tmp_vllm_start}" "$SCRIPT_DIR/.generated/vllm_start.sh"
 # docker compose -f "$COMPOSE_FILE" build
 
 # Start stack
+if [ "$DRY_RUN" = "true" ]; then
+  echo "Dry-run: generated docker/.generated/* (not running docker compose)"
+  exit 0
+fi
+
 docker compose -f "$COMPOSE_FILE" up -d
