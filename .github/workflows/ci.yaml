@@ -38,9 +38,9 @@ jobs:
   docker-build:
     name: docker-build (${{ matrix.name }})
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'release'
     permissions:
       contents: read
-      pull-requests: read
       packages: write
       id-token: write
     strategy:
@@ -80,8 +80,7 @@ jobs:
       - name: Log in to GitHub Container Registry
         if: |
           (github.event_name == 'release') ||
-          (steps.changes.outputs.docker_cuda == 'true' && github.event_name == 'push') ||
-          (steps.changes.outputs.docker_cuda == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+          (steps.changes.outputs.docker_cuda == 'true' && github.event_name == 'push')
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -109,7 +108,7 @@ jobs:
           context: .
           file: ./${{ matrix.dockerfile }}
           platforms: linux/amd64
-          push: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+          push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Build and push with Depot (release)
