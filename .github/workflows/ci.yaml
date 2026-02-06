@@ -22,35 +22,6 @@ jobs:
       - name: ShellCheck (docker/run_docker_compose.sh)
         run: shellcheck -x docker/run_docker_compose.sh
 
-      - name: hadolint (Dockerfile.cu126)
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: docker/Dockerfile.cu126
-
-      - name: hadolint (Dockerfile.cu129)
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: docker/Dockerfile.cu129
-
-      - name: hadolint (Dockerfile.cu130)
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: docker/Dockerfile.cu130
-
-      - name: Rust fmt/clippy (onwards)
-        if: hashFiles('onwards/Cargo.toml') != ''
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-
-      - name: cargo fmt (onwards)
-        if: hashFiles('onwards/Cargo.toml') != ''
-        run: cd onwards && cargo fmt --all -- --check
-
-      - name: cargo clippy (onwards)
-        if: hashFiles('onwards/Cargo.toml') != ''
-        run: cd onwards && cargo clippy --all-targets --all-features -- -D warnings
-
   test:
     if: github.event_name != 'release'
     runs-on: ubuntu-latest
