@@ -6,17 +6,17 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 version="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"
 compose="$ROOT_DIR/docker/docker-compose.yml"
 
-# Expect the fallback in docker-compose to match VERSION so the stack stays tied to Shenron releases.
-fallback="$(sed -nE 's/.*\$\{SHENRON_VERSION:-([^}]*)\}.*/\1/p' "$compose" | head -n1)"
-
-if [ -z "$fallback" ]; then
-  echo "Could not find SHENRON_VERSION fallback in docker-compose.yml" >&2
+# Expect docker-compose to use SHENRON_VERSION (and not a hardcoded fallback) so releases don't drift.
+# shellcheck disable=SC2016
+if ! grep -q '\${SHENRON_VERSION}' "$compose"; then
+  echo "docker-compose.yml does not reference SHENRON_VERSION" >&2
   exit 1
 fi
 
-if [ "$fallback" != "$version" ]; then
-  echo "docker-compose.yml SHENRON_VERSION fallback ($fallback) != VERSION ($version)" >&2
+# shellcheck disable=SC2016
+if grep -q '\${SHENRON_VERSION:-' "$compose"; then
+  echo "docker-compose.yml should not hardcode a SHENRON_VERSION fallback" >&2
   exit 1
 fi
 
-echo "docker-compose version fallback matches VERSION: $version"
+echo "docker-compose version is controlled by SHENRON_VERSION (VERSION=$version)"
