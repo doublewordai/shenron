@@ -7,7 +7,7 @@ x-common-ulimits: &common-ulimits
 
 services:
   vllm:
-    image: tytn/shenron:${SHENRON_VERSION}-cu${CU:-126}
+    image: ghcr.io/doublewordai/shenron:${SHENRON_VERSION}-cu${CU:-126}
     ulimits: *common-ulimits
     restart: unless-stopped
     command: ["bash","-lc","source /opt/shenron/.venv/bin/activate && exec bash /generated/vllm_start.sh"]

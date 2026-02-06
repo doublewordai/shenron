@@ -7,9 +7,9 @@ In each `docker-compose-cu*.yml`, every service has a `build:` section that tell
 - `dockerfile`: the Dockerfile path (relative to the `context`).
 
 If you run `docker compose up --build` (or `docker compose build`), Compose will build:
-- `tytn/shenron:${SHENRON_VERSION}-vllm-cu*` from `docker/Dockerfile.cu*`
-- `tytn/shenron:${SHENRON_VERSION}-onwards` from `docker/Dockerfile.onwards`
-- `tytn/shenron:${SHENRON_VERSION}-prometheus` from `docker/Dockerfile.prometheus`
+- `ghcr.io/doublewordai/shenron:${SHENRON_VERSION}-cu*` from `docker/Dockerfile.cu*`
+- `ghcr.io/doublewordai/shenron:${SHENRON_VERSION}-onwards` from `docker/Dockerfile.onwards`
+- `ghcr.io/doublewordai/shenron:${SHENRON_VERSION}-prometheus` from `docker/Dockerfile.prometheus`
 
 If you already have those images built/pulled, you can run `docker compose up` without rebuilding.
 
