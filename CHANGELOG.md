@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/doublewordai/shenron/compare/v0.2.0...v0.3.0) (2026-02-06)
+
+
+### Features
+
+* update SHENRON_VERSION handling in docker-compose and related tests ([333db7f](https://github.com/doublewordai/shenron/commit/333db7f90ca2074ca898c59c18bec5f40985f954))
+
+
+### Bug Fixes
+
+* update SHENRON_VERSION handling in docker-compose and related t… ([77cd3bd](https://github.com/doublewordai/shenron/commit/77cd3bd34e1cb241f090ac1b2d4f57e1053f8f84))
+
 ## [0.2.0](https://github.com/doublewordai/shenron/compare/v0.1.0...v0.2.0) (2026-02-06)
 
 
