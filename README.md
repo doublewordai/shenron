@@ -58,6 +58,9 @@ These files are always directly downloadable from GitHub:
 curl -fsSL https://raw.githubusercontent.com/doublewordai/shenron/main/docker/run_docker_compose.sh -o run_docker_compose.sh
 curl -fsSL https://raw.githubusercontent.com/doublewordai/shenron/main/docker/docker-compose.yml -o docker-compose.yml
 chmod +x run_docker_compose.sh
+
+# When using main-branch downloads, set a released Shenron version explicitly:
+export SHENRON_VERSION=0.3.0
 ```
 
 **Versioned (release assets):**
