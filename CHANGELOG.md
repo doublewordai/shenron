@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/doublewordai/shenron/compare/v0.3.0...v0.4.0) (2026-02-06)
+
+
+### Features
+
+* update Docker image references to use ghcr.io for consistency ([7797780](https://github.com/doublewordai/shenron/commit/7797780b06b42bdcc67ac34142b5fb6a54ec7a3f))
+
+
+### Bug Fixes
+
+* update Docker image references to use ghcr.io for consistency ([c3d755a](https://github.com/doublewordai/shenron/commit/c3d755af94ee52d35c2ca88570de483626521792))
+
 ## [0.3.0](https://github.com/doublewordai/shenron/compare/v0.2.0...v0.3.0) (2026-02-06)
 
 
