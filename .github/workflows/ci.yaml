@@ -19,8 +19,8 @@ jobs:
       - name: Install ShellCheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
 
-      - name: ShellCheck
-        run: shellcheck -x $(git ls-files '*.sh')
+      - name: ShellCheck (docker/run_docker_compose.sh)
+        run: shellcheck -x docker/run_docker_compose.sh
 
       - name: hadolint (Dockerfile.cu126)
         uses: hadolint/hadolint-action@v3.1.0

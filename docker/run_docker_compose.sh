@@ -63,9 +63,11 @@ fi
 if [[ -n "${SHENRON_VERSION:-}" ]]; then
   export SHENRON_VERSION
 elif [[ -f "$ROOT_DIR/VERSION" ]]; then
-  export SHENRON_VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"
+  SHENRON_VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"
+  export SHENRON_VERSION
 elif [[ -n "${SHENRON_RELEASE_TAG:-}" ]]; then
-  export SHENRON_VERSION="${SHENRON_RELEASE_TAG#v}"
+  SHENRON_VERSION="${SHENRON_RELEASE_TAG#v}"
+  export SHENRON_VERSION
 fi
 export MODELNAME=${MODELNAME:-Qwen/Qwen3-0.6B}
 export APIKEY=${APIKEY:-sk-}
@@ -86,6 +88,10 @@ export SCOUTER_COLLECTOR_INSTANCE=${SCOUTER_COLLECTOR_INSTANCE:-"host.docker.int
 export SCOUTER_COLLECTOR_URL=${SCOUTER_COLLECTOR_URL:-"http://${SCOUTER_COLLECTOR_INSTANCE}:4321"}
 export SCOUTER_REPORTER_INTERVAL=${SCOUTER_REPORTER_INTERVAL:-10}
 export SCOUTER_INGEST_API_KEY=${SCOUTER_INGEST_API_KEY:-"api-key"} # Optional API key for Scouter collector
+
+# vLLM generation config override (pass as a single JSON string argument)
+export VLLM_OVERRIDE_GENERATION_CONFIG=${VLLM_OVERRIDE_GENERATION_CONFIG:-'{"max_new_tokens":16384,"presence_penalty":1.5,"temperature":0.7,"top_p":0.8,"top_k":20,"min_p":0}'}
+
 # Edit this array to control how vLLM is launched.
 VLLM_ARGS=(
     --model "${MODELNAME}"
@@ -100,14 +106,7 @@ VLLM_ARGS=(
     --enable-auto-tool-choice
     --tool-call-parser "hermes"
     --generation-config "auto"
-    --override-generation-config \'{
-    \"max_new_tokens\": 16384,
-    \"presence_penalty\": 1.5,
-    \"temperature\": 0.7,
-    \"top_p\": 0.8,
-    \"top_k\": 20,
-    \"min_p\": 0
-    }\'
+    --override-generation-config "${VLLM_OVERRIDE_GENERATION_CONFIG}"
 )
 
 mkdir -p "$SCRIPT_DIR/.generated"
