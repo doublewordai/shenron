@@ -1,0 +1,29 @@
+name: Release Assets
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  upload-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Prepare assets
+        run: |
+          sed "s|__SHENRON_RELEASE_TAG__|${{ github.event.release.tag_name }}|g" docker/run_docker_compose.sh > run_docker_compose.sh
+          cp docker/docker-compose.yml docker-compose.yml
+
+      - name: Upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            run_docker_compose.sh
+            docker-compose.yml
