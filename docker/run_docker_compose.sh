@@ -2,13 +2,73 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
+
+DRY_RUN=false
+if [[ "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=true
+  shift
+fi
 
 # Choose CUDA variant via CU=126|129|130
 export CU=${CU:-126}
-COMPOSE_FILE=${COMPOSE_FILE:-"$SCRIPT_DIR/docker-compose.yml"}
+
+# If this script is downloaded from a GitHub Release, the placeholder below is stamped with the tag (e.g. v0.3.0).
+# You can also set SHENRON_RELEASE_TAG manually.
+_SHENRON_RELEASE_TAG_STAMP="__SHENRON_RELEASE_TAG__"
+if [[ "$_SHENRON_RELEASE_TAG_STAMP" != "__SHENRON_RELEASE_TAG__" && -z "${SHENRON_RELEASE_TAG:-}" ]]; then
+  export SHENRON_RELEASE_TAG="$_SHENRON_RELEASE_TAG_STAMP"
+fi
+
+# Prefer docker-compose.yml if it exists next to this script; fall back to docker-compose.yaml
+if [[ -z "${COMPOSE_FILE:-}" ]]; then
+  if [[ -f "$SCRIPT_DIR/docker-compose.yml" ]]; then
+    COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
+  elif [[ -f "$SCRIPT_DIR/docker-compose.yaml" ]]; then
+    COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yaml"
+  else
+    COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
+  fi
+fi
+
+# Auto-download docker-compose if missing (lets you download just this script and run it)
+if [[ ! -f "$COMPOSE_FILE" ]]; then
+  if [[ "$COMPOSE_FILE" != "$SCRIPT_DIR/docker-compose.yml" && "$COMPOSE_FILE" != "$SCRIPT_DIR/docker-compose.yaml" ]]; then
+    echo "Compose file not found: $COMPOSE_FILE" >&2
+    exit 1
+  fi
+
+  if [[ -n "${SHENRON_RELEASE_TAG:-}" ]]; then
+    SHENRON_COMPOSE_URL_DEFAULT="https://github.com/doublewordai/shenron/releases/download/${SHENRON_RELEASE_TAG}/docker-compose.yml"
+  else
+    SHENRON_COMPOSE_URL_DEFAULT="https://github.com/doublewordai/shenron/releases/latest/download/docker-compose.yml"
+  fi
+  SHENRON_COMPOSE_URL="${SHENRON_COMPOSE_URL:-$SHENRON_COMPOSE_URL_DEFAULT}"
+
+  echo "Compose file not found; downloading: $SHENRON_COMPOSE_URL" >&2
+  _tmp_compose=$(mktemp "${COMPOSE_FILE}.XXXXXX")
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$SHENRON_COMPOSE_URL" -o "$_tmp_compose"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$_tmp_compose" "$SHENRON_COMPOSE_URL"
+  else
+    echo "Missing downloader: install curl or wget" >&2
+    exit 1
+  fi
+  chmod 0644 "$_tmp_compose"
+  mv -f "$_tmp_compose" "$COMPOSE_FILE"
+fi
 
 # Common runtime config
-export SHENRON_VERSION=${SHENRON_VERSION:-0.2.0}
+if [[ -n "${SHENRON_VERSION:-}" ]]; then
+  export SHENRON_VERSION
+elif [[ -f "$ROOT_DIR/VERSION" ]]; then
+  SHENRON_VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"
+  export SHENRON_VERSION
+elif [[ -n "${SHENRON_RELEASE_TAG:-}" ]]; then
+  SHENRON_VERSION="${SHENRON_RELEASE_TAG#v}"
+  export SHENRON_VERSION
+fi
 export MODELNAME=${MODELNAME:-Qwen/Qwen3-0.6B}
 export APIKEY=${APIKEY:-sk-}
 export VLLM_FLASHINFER_MOE_BACKEND=${VLLM_FLASHINFER_MOE_BACKEND:-throughput}
@@ -28,6 +88,10 @@ export SCOUTER_COLLECTOR_INSTANCE=${SCOUTER_COLLECTOR_INSTANCE:-"host.docker.int
 export SCOUTER_COLLECTOR_URL=${SCOUTER_COLLECTOR_URL:-"http://${SCOUTER_COLLECTOR_INSTANCE}:4321"}
 export SCOUTER_REPORTER_INTERVAL=${SCOUTER_REPORTER_INTERVAL:-10}
 export SCOUTER_INGEST_API_KEY=${SCOUTER_INGEST_API_KEY:-"api-key"} # Optional API key for Scouter collector
+
+# vLLM generation config override (pass as a single JSON string argument)
+export VLLM_OVERRIDE_GENERATION_CONFIG=${VLLM_OVERRIDE_GENERATION_CONFIG:-'{"max_new_tokens":16384,"presence_penalty":1.5,"temperature":0.7,"top_p":0.8,"top_k":20,"min_p":0}'}
+
 # Edit this array to control how vLLM is launched.
 VLLM_ARGS=(
     --model "${MODELNAME}"
@@ -42,14 +106,7 @@ VLLM_ARGS=(
     --enable-auto-tool-choice
     --tool-call-parser "hermes"
     --generation-config "auto"
-    --override-generation-config \'{
-    \"max_new_tokens\": 16384,
-    \"presence_penalty\": 1.5,
-    \"temperature\": 0.7,
-    \"top_p\": 0.8,
-    \"top_k\": 20,
-    \"min_p\": 0
-    }\'
+    --override-generation-config "${VLLM_OVERRIDE_GENERATION_CONFIG}"
 )
 
 mkdir -p "$SCRIPT_DIR/.generated"
@@ -125,4 +182,9 @@ mv -f "${_tmp_vllm_start}" "$SCRIPT_DIR/.generated/vllm_start.sh"
 # docker compose -f "$COMPOSE_FILE" build
 
 # Start stack
-docker compose -f "$COMPOSE_FILE" up -d
+if [ "$DRY_RUN" = "true" ]; then
+  echo "Dry-run: generated docker/.generated/* (not running docker compose)"
+  exit 0
+fi
+
+docker compose --project-directory "$SCRIPT_DIR" -f "$COMPOSE_FILE" up -d

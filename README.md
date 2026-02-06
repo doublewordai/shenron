@@ -48,6 +48,37 @@ cd shenron
 
 By default, the container starts with a small Qwen model for testing. You can customize the behavior using environment variables in a `.env` file (see `docker/.env.example`).
 
+### Downloading Docker Compose files (no git clone)
+
+These files are always directly downloadable from GitHub:
+
+**Latest (main branch):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/doublewordai/shenron/main/docker/run_docker_compose.sh -o run_docker_compose.sh
+curl -fsSL https://raw.githubusercontent.com/doublewordai/shenron/main/docker/docker-compose.yml -o docker-compose.yml
+chmod +x run_docker_compose.sh
+```
+
+**Versioned (release assets):**
+
+```bash
+TAG=v0.1.0  # pick a release tag
+curl -fsSL https://github.com/doublewordai/shenron/releases/download/${TAG}/run_docker_compose.sh -o run_docker_compose.sh
+curl -fsSL https://github.com/doublewordai/shenron/releases/download/${TAG}/docker-compose.yml -o docker-compose.yml
+chmod +x run_docker_compose.sh
+```
+
+**Always-latest release (no tag needed):**
+
+```bash
+curl -fsSL https://github.com/doublewordai/shenron/releases/latest/download/run_docker_compose.sh -o run_docker_compose.sh
+chmod +x run_docker_compose.sh
+
+# This script will download docker-compose.yml automatically if it's missing
+./run_docker_compose.sh
+```
+
 ### Environment Variables
 
 | Variable | Description | Default |

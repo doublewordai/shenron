@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    if: github.event_name != 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: ShellCheck (docker/run_docker_compose.sh)
+        run: shellcheck -x docker/run_docker_compose.sh
+
+  test:
+    if: github.event_name != 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Rust (onwards)
+        if: hashFiles('onwards/Cargo.toml') != ''
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run Shenron tests
+        run: ./scripts/ci.sh
+
+  docker-build:
+    name: docker-build (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'release'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: cu126
+            dockerfile: docker/Dockerfile.cu126
+            tag_suffix: -cu126
+          - name: cu129
+            dockerfile: docker/Dockerfile.cu129
+            tag_suffix: -cu129
+          - name: cu130
+            dockerfile: docker/Dockerfile.cu130
+            tag_suffix: -cu130
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || github.sha }}
+
+      - name: Detect CUDA Dockerfile changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            docker_cuda:
+              - 'docker/Dockerfile.cu*'
+
+      - name: Read VERSION
+        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true'
+        run: echo "VERSION=$(tr -d '[:space:]' < VERSION)" >> $GITHUB_ENV
+
+      - uses: docker/setup-buildx-action@v3
+        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true'
+
+      - name: Log in to GitHub Container Registry
+        if: |
+          (github.event_name == 'release') ||
+          (steps.changes.outputs.docker_cuda == 'true' && github.event_name == 'push')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/shenron
+          flavor: |
+            suffix=${{ matrix.tag_suffix }}
+          tags: |
+            type=raw,value=${{ env.VERSION }}
+            type=sha,event=branch,prefix=sha-
+            type=ref,event=pr
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+
+      - name: Build and push (CUDA Dockerfile change)
+        if: github.event_name != 'release' && steps.changes.outputs.docker_cuda == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Build and push with Depot (release)
+        if: github.event_name == 'release'
+        uses: depot/build-push-action@v1
+        with:
+          context: .
+          file: ./${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          sbom: true
+          provenance: true
