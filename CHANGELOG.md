@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/doublewordai/shenron/compare/v0.4.0...v0.5.0) (2026-02-09)
+
+
+### Features
+
+* add Copilot instructions and enhance CI workflow with build space maximization ([b632cea](https://github.com/doublewordai/shenron/commit/b632ceaf851a3f6efad59ae340c303c809b1a88d))
+
+
+### Bug Fixes
+
+* add Copilot instructions and enhance CI workflow with build space maximization ([d15d018](https://github.com/doublewordai/shenron/commit/d15d018a71b445b528c15ef5f9e3ccd2ff49dbfb))
+
 ## [0.4.0](https://github.com/doublewordai/shenron/compare/v0.3.0...v0.4.0) (2026-02-06)
 
 
