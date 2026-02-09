@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/doublewordai/shenron/compare/v0.5.0...v0.5.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* add Depot CLI setup step to CI workflow for release events ([87e7ef8](https://github.com/doublewordai/shenron/commit/87e7ef8654f149f2f5721626cb87ed94e8dd3248))
+* add Depot CLI setup step to CI workflow for release events ([cc642c1](https://github.com/doublewordai/shenron/commit/cc642c1da8919e54f15657d91cf7e5c28f6a62c0))
+
 ## [0.5.0](https://github.com/doublewordai/shenron/compare/v0.4.0...v0.5.0) (2026-02-09)
 
 
