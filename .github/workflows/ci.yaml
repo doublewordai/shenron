@@ -118,10 +118,20 @@ jobs:
             type=ref,event=pr
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
 
+      - name: Verify Depot project configuration
+        if: (github.event_name == 'push' || github.event_name == 'release') && (steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true') && !vars.DEPOT_PROJECT_ID
+        run: |
+          echo "::error::DEPOT_PROJECT_ID repo variable is not set. Create a Depot project and set DEPOT_PROJECT_ID in GitHub repo Variables." \
+               " If you are using OIDC, also add a Trust Relationship in Depot project settings for this repo/workflow." \
+               " Otherwise, set a DEPOT_TOKEN secret and the workflow will use it."
+          exit 1
+
       - name: Build and push with Depot (main)
         if: github.event_name == 'push' && (steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true')
         uses: depot/build-push-action@v1
         with:
+          project: ${{ vars.DEPOT_PROJECT_ID }}
+          token: ${{ secrets.DEPOT_TOKEN }}
           context: .
           file: ./${{ matrix.dockerfile }}
           platforms: linux/amd64
@@ -132,6 +142,8 @@ jobs:
         if: github.event_name == 'release'
         uses: depot/build-push-action@v1
         with:
+          project: ${{ vars.DEPOT_PROJECT_ID }}
+          token: ${{ secrets.DEPOT_TOKEN }}
           context: .
           file: ./${{ matrix.dockerfile }}
           platforms: linux/amd64,linux/arm64
