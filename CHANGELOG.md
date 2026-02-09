@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.2](https://github.com/doublewordai/shenron/compare/v0.5.1...v0.5.2) (2026-02-09)
+
+
+### Bug Fixes
+
+* add depy auth ([4fa847a](https://github.com/doublewordai/shenron/commit/4fa847a73ee0fe5dd19e728489ac4eda7b296353))
+* add verification for DEPOT_PROJECT_ID in CI workflow and update build steps ([223c256](https://github.com/doublewordai/shenron/commit/223c256f4334513e22c68b368960c9f8ab4461b4))
+* add verification for DEPOT_PROJECT_ID in CI workflow and update build steps ([b5111df](https://github.com/doublewordai/shenron/commit/b5111dfc91a5cc441d5617d50e596cfe7bce9c76))
+
 ## [0.5.1](https://github.com/doublewordai/shenron/compare/v0.5.0...v0.5.1) (2026-02-09)
 
 
