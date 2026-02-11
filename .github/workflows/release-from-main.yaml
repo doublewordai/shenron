@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,16 +14,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-      - name: Detect release commit
+      - name: Determine release tag from VERSION
         id: detect
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
         run: |
-          msg="${{ github.event.head_commit.message }}"
-          if [[ "$msg" == chore\(main\):\ release\ * ]]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
+          tag="v$(tr -d '[:space:]' < VERSION)"
+          target_sha="$(git log -n 1 --format=%H -- VERSION)"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Not a release commit; skipping."
+            echo "Release $tag already exists; skipping."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Verify release token
@@ -38,14 +46,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
-          tag="v$(tr -d '[:space:]' < VERSION)"
-          if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            echo "Release $tag already exists; skipping."
-            exit 0
-          fi
-
+          tag="${{ steps.detect.outputs.tag }}"
           gh release create "$tag" \
             --repo "${{ github.repository }}" \
-            --target "${{ github.sha }}" \
+            --target "${{ steps.detect.outputs.target_sha }}" \
             --title "$tag" \
             --generate-notes
