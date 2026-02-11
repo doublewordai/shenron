@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/doublewordai/shenron/compare/v0.6.1...v0.6.2) (2026-02-11)
+
+
+### Bug Fixes
+
+* re-enable Depot cache for cu129 builds ([45e31fe](https://github.com/doublewordai/shenron/commit/45e31fe77339d5a60a9fe2e14c656b7b4464ee4a))
+
 ## [0.6.1](https://github.com/doublewordai/shenron/compare/v0.6.0...v0.6.1) (2026-02-11)
 
 
