@@ -52,3 +52,29 @@ jobs:
             --target "${{ steps.detect.outputs.target_sha }}" \
             --title "$tag" \
             --generate-notes
+
+      - name: Mark corresponding release PR as tagged
+        if: steps.detect.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          version="${{ steps.detect.outputs.tag }}"
+          version="${version#v}"
+          pr_number="$(
+            gh pr list \
+              --repo "${{ github.repository }}" \
+              --state merged \
+              --search "chore(main): release ${version} in:title" \
+              --json number \
+              --jq '.[0].number // empty'
+          )"
+
+          if [[ -z "$pr_number" ]]; then
+            echo "No merged release PR found for ${version}; skipping label updates."
+            exit 0
+          fi
+
+          gh pr edit "$pr_number" \
+            --repo "${{ github.repository }}" \
+            --remove-label "autorelease: pending" \
+            --add-label "autorelease: tagged"
