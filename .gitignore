@@ -102,6 +102,8 @@ ipython_config.py
 #uv.lock
 
 docker/.generated/
+configs/.generated/
+configs/docker-compose.yml
 
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
