@@ -1,7 +1,7 @@
 model_name: Qwen/Qwen3-0.6B
 cuda_version: 126
 tensor_parallel_size: 1
-shenron_version: 0.5.2
+shenron_version: 0.6.0
 onwards_version: latest
 
 api_key: sk-

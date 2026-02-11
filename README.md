@@ -13,7 +13,7 @@ Shenron now ships as a config-driven generator for production LLM docker-compose
 
 ```bash
 uv pip install shenron
-wget https://github.com/doublewordai/shenron/releases/download/v0.5.3/Qwen06B-cu126-TP1.yml
+wget https://github.com/doublewordai/shenron/releases/download/v0.6.0/Qwen06B-cu126-TP1.yml
 shenron .
 docker compose up -d
 ```
