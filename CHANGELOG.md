@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.3](https://github.com/doublewordai/shenron/compare/v0.6.2...v0.6.3) (2026-02-11)
+
+
+### Bug Fixes
+
+* make release creation deterministic from VERSION ([4818b7b](https://github.com/doublewordai/shenron/commit/4818b7bbdec77d455e2d2d9680200b41407bc498))
+* mark merged release PR as tagged after release ([e448182](https://github.com/doublewordai/shenron/commit/e4481823c9a2ec2f906b260594798e019d01a889))
+
 ## [0.6.2](https://github.com/doublewordai/shenron/compare/v0.6.1...v0.6.2) (2026-02-11)
 
 
