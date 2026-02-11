@@ -22,6 +22,7 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: pypi
     steps:
       - if: ${{ !env.ACT }}
         uses: actions/checkout@v6
