@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/doublewordai/shenron/compare/v0.5.2...v0.6.0) (2026-02-11)
+
+
+### Features
+
+* config-driven shenron generator and release automation ([1f4c4a4](https://github.com/doublewordai/shenron/commit/1f4c4a44942976ad706cde7ea39037b656ee2c88))
+
 ## [0.5.2](https://github.com/doublewordai/shenron/compare/v0.5.1...v0.5.2) (2026-02-09)
 
 
