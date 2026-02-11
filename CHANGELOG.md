@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/doublewordai/shenron/compare/v0.6.0...v0.6.1) (2026-02-11)
+
+
+### Bug Fixes
+
+* align quickstart and default config with v0.6.0 ([f99ce5c](https://github.com/doublewordai/shenron/commit/f99ce5c54b036584b12672a21be28e4db33c5bd2))
+
 ## [0.6.0](https://github.com/doublewordai/shenron/compare/v0.5.2...v0.6.0) (2026-02-11)
 
 
