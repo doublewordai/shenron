@@ -102,9 +102,6 @@ jobs:
         if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || (github.event_name == 'workflow_dispatch' && inputs.force_docker_build)
         run: echo "VERSION=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_ENV"
 
-      - uses: docker/setup-buildx-action@v3
-        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || (github.event_name == 'workflow_dispatch' && inputs.force_docker_build)
-
       - name: Set up Depot CLI
         if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || (github.event_name == 'workflow_dispatch' && inputs.force_docker_build)
         uses: depot/setup-action@v1

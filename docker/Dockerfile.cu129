@@ -69,7 +69,8 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
 # Needed for FP8-MOE models
 RUN uv venv /opt/shenron/.venv && \
     . /opt/shenron/.venv/bin/activate && \
-    uv pip install vllm==0.13.0 --torch-backend=auto && \
+    uv pip install vllm==0.13.0 --torch-backend=cu129 && \
+    python -c "import torch; assert torch.cuda._is_compiled(), 'Expected CUDA-enabled torch'; print(torch.__version__, torch.version.cuda)" && \
     uv pip install flashinfer-cubin==0.5.3 flashinfer-python==0.5.3 && \
     uv pip install flashinfer-jit-cache==0.5.3 --index-url https://flashinfer.ai/whl/cu129
 
