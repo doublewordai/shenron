@@ -64,7 +64,7 @@ jobs:
           - name: cu129
             dockerfile: docker/Dockerfile.cu129
             tag_suffix: -cu129
-            depot_no_cache: true
+            depot_no_cache: false
           - name: cu130
             dockerfile: docker/Dockerfile.cu130
             tag_suffix: -cu130
