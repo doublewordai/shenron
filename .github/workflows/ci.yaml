@@ -54,12 +54,15 @@ jobs:
           - name: cu126
             dockerfile: docker/Dockerfile.cu126
             tag_suffix: -cu126
+            depot_no_cache: false
           - name: cu129
             dockerfile: docker/Dockerfile.cu129
             tag_suffix: -cu129
+            depot_no_cache: true
           - name: cu130
             dockerfile: docker/Dockerfile.cu130
             tag_suffix: -cu130
+            depot_no_cache: false
 
     steps:
       - name: Maximize build space
@@ -139,6 +142,7 @@ jobs:
           context: .
           file: ./${{ matrix.dockerfile }}
           platforms: linux/amd64
+          no-cache: ${{ matrix.depot_no_cache }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
@@ -151,6 +155,7 @@ jobs:
           context: .
           file: ./${{ matrix.dockerfile }}
           platforms: linux/amd64
+          no-cache: ${{ matrix.depot_no_cache }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           sbom: true
