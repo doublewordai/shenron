@@ -27,7 +27,7 @@ jobs:
       - if: ${{ !env.ACT }}
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release_tag || format('v{0}', github.ref_name) }}
 
       - if: ${{ env.ACT }}
         uses: actions/checkout@v6
