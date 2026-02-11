@@ -8,6 +8,12 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      force_docker_build:
+        description: Force Docker build jobs even when no Docker files changed
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   lint:
@@ -42,7 +48,7 @@ jobs:
   docker-build:
     name: docker-build (${{ matrix.name }})
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'release'
+    if: github.event_name == 'push' || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       packages: write
@@ -89,22 +95,24 @@ jobs:
               - 'docker/Dockerfile.cu*'
             release_version:
               - 'VERSION'
+            ci_config:
+              - '.github/workflows/ci.yaml'
 
       - name: Read VERSION
-        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true'
+        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || (github.event_name == 'workflow_dispatch' && inputs.force_docker_build)
         run: echo "VERSION=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_ENV"
 
       - uses: docker/setup-buildx-action@v3
-        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true'
+        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || (github.event_name == 'workflow_dispatch' && inputs.force_docker_build)
 
       - name: Set up Depot CLI
-        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true'
+        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || (github.event_name == 'workflow_dispatch' && inputs.force_docker_build)
         uses: depot/setup-action@v1
 
       - name: Log in to GitHub Container Registry
         if: |
           (github.event_name == 'release') ||
-          (github.event_name == 'push' && (steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true'))
+          ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || inputs.force_docker_build))
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -112,7 +120,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata
-        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true'
+        if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || (github.event_name == 'workflow_dispatch' && inputs.force_docker_build)
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -126,7 +134,7 @@ jobs:
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
 
       - name: Verify Depot project configuration
-        if: (github.event_name == 'push' || github.event_name == 'release') && (steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true') && !vars.DEPOT_PROJECT_ID
+        if: (github.event_name == 'push' || github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || inputs.force_docker_build) && !vars.DEPOT_PROJECT_ID
         run: |
           echo "::error::DEPOT_PROJECT_ID repo variable is not set. Create a Depot project and set DEPOT_PROJECT_ID in GitHub repo Variables." \
                " If you are using OIDC, also add a Trust Relationship in Depot project settings for this repo/workflow." \
@@ -134,7 +142,7 @@ jobs:
           exit 1
 
       - name: Build and push with Depot (main)
-        if: github.event_name == 'push' && (steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true')
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || inputs.force_docker_build)
         uses: depot/build-push-action@v1
         with:
           project: ${{ vars.DEPOT_PROJECT_ID }}
