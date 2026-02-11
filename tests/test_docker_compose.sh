@@ -2,21 +2,18 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+workdir="$(mktemp -d)"
+cp "$ROOT_DIR/configs/Qwen06B-cu126-TP1.yml" "$workdir/"
 
-"$ROOT_DIR/docker/run_docker_compose.sh" --dry-run
+shenron "$workdir"
 
-# Validate docker-compose file parses.
-SHENRON_VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")" \
-  docker compose -f "$ROOT_DIR/docker/docker-compose.yml" config >/dev/null
-
-# Confirm expected containers/services exist.
-services="$(SHENRON_VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")" docker compose -f "$ROOT_DIR/docker/docker-compose.yml" config --services)"
+docker compose -f "$workdir/docker-compose.yml" config >/dev/null
+services="$(docker compose -f "$workdir/docker-compose.yml" config --services)"
 for svc in vllm onwards prometheus scouter-reporter; do
   if ! echo "$services" | grep -qx "$svc"; then
     echo "docker-compose config missing service: $svc" >&2
     exit 1
   fi
-
 done
 
-echo "docker-compose.yml ok"
+echo "docker-compose.yml parses and includes expected services"

@@ -11,6 +11,17 @@ jobs:
   check-title:
     runs-on: ubuntu-latest
     steps:
-      - uses: amannn/action-semantic-pull-request@v6
+      - if: ${{ env.ACT }}
+        name: Validate PR title locally (act)
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! echo "$PR_TITLE" | grep -Eq '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\(.+\))?!?: .+'; then
+            echo "Invalid PR title: $PR_TITLE" >&2
+            exit 1
+          fi
+
+      - if: ${{ !env.ACT }}
+        uses: amannn/action-semantic-pull-request@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

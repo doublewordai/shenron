@@ -1,0 +1,23 @@
+[package]
+name = "shenron"
+version = "0.5.2"
+edition = "2021"
+license = "MIT"
+description = "Config-driven Shenron docker-compose generator"
+repository = "https://github.com/doublewordai/shenron"
+
+[lib]
+name = "shenron_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3 = { version = "0.22.6", features = ["extension-module"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+shlex = "1.3"
+tempfile = "3.13"
+thiserror = "1.0"
+
+[dev-dependencies]
+pretty_assertions = "1.4"
