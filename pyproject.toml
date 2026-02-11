@@ -1,0 +1,30 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "shenron"
+version = "0.5.2"
+description = "Generate Shenron docker-compose deployments from model config files"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "doubleword.ai" }]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Rust",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/doublewordai/shenron"
+Repository = "https://github.com/doublewordai/shenron"
+
+[project.scripts]
+shenron = "shenron.__main__:main"
+
+[tool.maturin]
+python-source = "."
+module-name = "shenron._core"
+features = ["pyo3/extension-module"]

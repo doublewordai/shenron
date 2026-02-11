@@ -1,0 +1,48 @@
+name: shenron-cu126
+
+services:
+  vllm:
+    image: ghcr.io/doublewordai/shenron:0.5.2-cu126
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 524288
+    command: ["bash","-lc","source /opt/shenron/.venv/bin/activate && exec bash /generated/vllm_start.sh"]
+    volumes:
+      - $HOME/.cache/huggingface:/root/.cache/huggingface
+      - ./.generated:/generated:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  onwards:
+    image: ghcr.io/doublewordai/onwards:latest
+    depends_on:
+      - vllm
+    command: ["--targets","/generated/onwards_config.json","--port","3000"]
+    volumes:
+      - ./.generated:/generated:ro
+    ports:
+      - "3000:3000"
+
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    depends_on:
+      - vllm
+    volumes:
+      - ./.generated/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  scouter-reporter:
+    image: ghcr.io/doublewordai/scouter:latest
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    env_file:
+      - ./.generated/scouter_reporter.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -11,19 +11,31 @@ jobs:
   upload-assets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - if: ${{ !env.ACT }}
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.release.tag_name }}
 
+      - if: ${{ env.ACT }}
+        uses: actions/checkout@v6
+
       - name: Prepare assets
         run: |
-          sed "s|__SHENRON_RELEASE_TAG__|${{ github.event.release.tag_name }}|g" docker/run_docker_compose.sh > run_docker_compose.sh
-          cp docker/docker-compose.yml docker-compose.yml
+          version="${{ github.event.release.tag_name }}"
+          version="${version#v}"
+          for cfg in configs/*.yml; do
+            out="$(basename "$cfg")"
+            sed -E "s|^shenron_version:.*$|shenron_version: ${version}|g" "$cfg" > "$out"
+          done
+
+      - name: Verify assets locally (act)
+        if: ${{ env.ACT }}
+        run: ls -la ./*.yml
 
       - name: Upload assets
+        if: ${{ !env.ACT }}
         uses: softprops/action-gh-release@v2
         with:
           fail_on_unmatched_files: true
           files: |
-            run_docker_compose.sh
-            docker-compose.yml
+            *.yml

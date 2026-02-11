@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "Qwen/Qwen3-0.6B": {
+      "keys": [
+        "sk-"
+      ],
+      "onwards_model": "Qwen/Qwen3-0.6B",
+      "url": "http://vllm:8000/v1"
+    }
+  }
+}

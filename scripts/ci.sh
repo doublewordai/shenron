@@ -9,8 +9,15 @@ run_test() {
   "$t"
 }
 
-run_test "$ROOT_DIR/tests/test_compose_version_matches.sh"
-run_test "$ROOT_DIR/tests/test_run_docker_compose_dry_run.sh"
+echo "==> cargo test"
+(cd "$ROOT_DIR" && cargo test)
+
+echo "==> install local shenron package"
+python3 -m pip install --upgrade pip
+python3 -m pip install -e "$ROOT_DIR"
+
+run_test "$ROOT_DIR/tests/test_generate_from_config.sh"
+run_test "$ROOT_DIR/tests/test_compose_generation.sh"
 
 if command -v docker >/dev/null 2>&1; then
   run_test "$ROOT_DIR/tests/test_docker_compose.sh"

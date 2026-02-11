@@ -28,8 +28,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install Rust (onwards)
-        if: hashFiles('onwards/Cargo.toml') != ''
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
       - name: Run Shenron tests
@@ -85,7 +89,7 @@ jobs:
 
       - name: Read VERSION
         if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true'
-        run: echo "VERSION=$(tr -d '[:space:]' < VERSION)" >> $GITHUB_ENV
+        run: echo "VERSION=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_ENV"
 
       - uses: docker/setup-buildx-action@v3
         if: github.event_name == 'release' || steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true'

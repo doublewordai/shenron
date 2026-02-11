@@ -1,0 +1,52 @@
+name: Publish Python Package
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ !env.ACT }}
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - if: ${{ env.ACT }}
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Sync package versions to release tag
+        run: |
+          version="${{ github.event.release.tag_name }}"
+          version="${version#v}"
+          sed -i -E "s/^version = \".*\"$/version = \"${version}\"/" Cargo.toml
+          sed -i -E "s/^version = \".*\"$/version = \"${version}\"/" pyproject.toml
+          sed -i -E "s/^shenron_version:.*$/shenron_version: ${version}/" configs/Qwen06B-cu126-TP1.yml
+          printf "%s\n" "$version" > VERSION
+
+      - name: Build wheel and sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: --release --sdist --out dist
+
+      - name: Verify dist locally (act)
+        if: ${{ env.ACT }}
+        run: ls -la dist
+
+      - name: Publish to PyPI
+        if: ${{ !env.ACT }}
+        uses: pypa/gh-action-pypi-publish@release/v1

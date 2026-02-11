@@ -2,7 +2,12 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "version-file": "VERSION"
+      "version-file": "VERSION",
+      "extra-files": [
+        "Cargo.toml",
+        "pyproject.toml",
+        "configs/Qwen06B-cu126-TP1.yml"
+      ]
     }
   },
   "include-component-in-tag": false
