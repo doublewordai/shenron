@@ -13,18 +13,10 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    env:
-      RELEASE_AUTOMATION_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.RELEASE_PLEASE_TOKEN }}
     steps:
-      - name: Verify release token
-        run: |
-          if [[ -z "${RELEASE_AUTOMATION_TOKEN}" ]]; then
-            echo "::error::Missing RELEASE_TOKEN (or RELEASE_PLEASE_TOKEN) secret. Add a PAT with repo scope so release-created events can trigger downstream workflows."
-            exit 1
-          fi
-
       - uses: googleapis/release-please-action@v4
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          token: ${{ env.RELEASE_AUTOMATION_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          skip-github-release: true

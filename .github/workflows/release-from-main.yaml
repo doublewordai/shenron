@@ -1,0 +1,39 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  publish-release:
+    if: startsWith(github.event.head_commit.message, 'chore(main): release ')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify release token
+        run: |
+          if [[ -z "${{ secrets.RELEASE_TOKEN }}" ]]; then
+            echo "::error::Missing RELEASE_TOKEN secret."
+            exit 1
+          fi
+
+      - name: Create GitHub release from VERSION
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          tag="v$(tr -d '[:space:]' < VERSION)"
+          if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release $tag already exists; skipping."
+            exit 0
+          fi
+
+          gh release create "$tag" \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "$tag" \
+            --generate-notes
