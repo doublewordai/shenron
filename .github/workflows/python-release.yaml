@@ -3,6 +3,17 @@ name: Publish Python Package
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Release tag to build from (e.g. v0.5.3)
+        required: false
+        type: string
+      dry_run:
+        description: Skip PyPI publish step
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -30,7 +41,15 @@ jobs:
 
       - name: Sync package versions to release tag
         run: |
-          version="${{ github.event.release.tag_name }}"
+          if [[ "${GITHUB_EVENT_NAME}" == "release" ]]; then
+            tag="${{ github.event.release.tag_name }}"
+          elif [[ -n "${{ inputs.release_tag }}" ]]; then
+            tag="${{ inputs.release_tag }}"
+          else
+            tag="v$(tr -d '[:space:]' < VERSION)"
+          fi
+
+          version="${tag}"
           version="${version#v}"
           sed -i -E "s/^version = \".*\"$/version = \"${version}\"/" Cargo.toml
           sed -i -E "s/^version = \".*\"$/version = \"${version}\"/" pyproject.toml
@@ -48,5 +67,5 @@ jobs:
         run: ls -la dist
 
       - name: Publish to PyPI
-        if: ${{ !env.ACT }}
+        if: ${{ !env.ACT && !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
         uses: pypa/gh-action-pypi-publish@release/v1
