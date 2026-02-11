@@ -10,12 +10,23 @@ permissions:
 
 jobs:
   publish-release:
-    if: startsWith(github.event.head_commit.message, 'chore(main): release ')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
+      - name: Detect release commit
+        id: detect
+        run: |
+          msg="${{ github.event.head_commit.message }}"
+          if [[ "$msg" == chore\(main\):\ release\ * ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Not a release commit; skipping."
+          fi
+
       - name: Verify release token
+        if: steps.detect.outputs.run == 'true'
         run: |
           if [[ -z "${{ secrets.RELEASE_TOKEN }}" ]]; then
             echo "::error::Missing RELEASE_TOKEN secret."
@@ -23,6 +34,7 @@ jobs:
           fi
 
       - name: Create GitHub release from VERSION
+        if: steps.detect.outputs.run == 'true'
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
