@@ -31,6 +31,7 @@ Available starter configs:
 - `configs/Qwen06B-cu130-TP1.yml`
 - `configs/Qwen30B-A3B-cu129-TP2.yml`
 - `configs/Qwen30B-A3B-cu130-TP2.yml`
+- `configs/Qwen235-A22B-cu129-TP2.yml`
 - `configs/Qwen235-A22B-cu129-TP4.yml`
 - `configs/Qwen235-A22B-cu130-TP2.yml`
 
