@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify release token
-        if: ${{ !secrets.RELEASE_PLEASE_TOKEN }}
+        if: ${{ secrets.RELEASE_PLEASE_TOKEN == '' }}
         run: |
           echo "::error::RELEASE_PLEASE_TOKEN secret is required so release-please can trigger downstream workflows."
           echo "Create a classic PAT with repo scope and add it as RELEASE_PLEASE_TOKEN."
