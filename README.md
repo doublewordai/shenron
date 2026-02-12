@@ -17,7 +17,10 @@ shenron get
 docker compose up -d
 ```
 
-`shenron get` reads a per-release config index asset, shows available configs with arrow-key selection, downloads the chosen config, and generates deployment artifacts in the current directory.
+`shenron get` reads a per-release config index asset, shows available configs with arrow-key selection, downloads the chosen config, and generates deployment artifacts in the current directory. You can also override config values on download with:
+- `--api-key` (writes `api_key`)
+- `--scouter-api-key` (writes `scouter_ingest_api_key`)
+- `--scouter-colector-instance` (writes `scouter_collector_instance`)
 
 `shenron .` still works and expects exactly one config YAML (`*.yml` or `*.yaml`) in the current directory, unless you pass a config file path directly.
 
