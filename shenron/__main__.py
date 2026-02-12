@@ -133,10 +133,12 @@ def _interactive_select(options: List[str]) -> str:
 
     def render() -> None:
         sys.stdout.write("\x1b[2J\x1b[H")
-        sys.stdout.write("Select a Shenron config (arrow keys, Enter to confirm, q to cancel):\n\n")
+        sys.stdout.write(
+            "Select a Shenron config (arrow keys, Enter to confirm, q to cancel):\r\n\r\n"
+        )
         for i, option in enumerate(options):
             prefix = "> " if i == idx else "  "
-            sys.stdout.write(f"{prefix}{option}\n")
+            sys.stdout.write(f"{prefix}{option}\r\n")
         sys.stdout.flush()
 
     try:
@@ -145,7 +147,7 @@ def _interactive_select(options: List[str]) -> str:
         while True:
             ch = sys.stdin.read(1)
             if ch in ("\r", "\n"):
-                sys.stdout.write("\n")
+                sys.stdout.write("\r\n")
                 return options[idx]
             if ch in ("q", "Q"):
                 raise CliError("selection cancelled")
