@@ -26,6 +26,7 @@
 - Compose must reference `${SHENRON_VERSION}` **without** a hardcoded fallback; tests enforce this (see [tests/test_compose_version_matches.sh](tests/test_compose_version_matches.sh)).
 - [docker/run_docker_compose.sh](docker/run_docker_compose.sh) contains the placeholder `__SHENRON_RELEASE_TAG__` which is stamped by the release workflow; keep that placeholder intact.
 - Release Please uses a PAT stored as the `RELEASE_PLEASE_TOKEN` repo secret so releases trigger downstream workflows (PyPI/assets).
+- After setting `RELEASE_PLEASE_TOKEN`, Release Please releases should trigger `Publish Python Package` and `Release Assets`.
 
 ## Tests / CI expectations
 - Run the same checks as CI: `./scripts/ci.sh`.
