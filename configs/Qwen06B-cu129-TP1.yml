@@ -3,34 +3,37 @@ cuda_version: 129
 tensor_parallel_size: 1
 shenron_version: 0.6.0
 onwards_version: latest
-
-api_key: sk-
-vllm_flashinfer_moe_backend: throughput
-vllm_port: 8000
-vllm_host: 0.0.0.0
-onwards_port: 3000
-
-prometheus_port: 9090
-prometheus_version: v2.51.2
-
-scouter_version: latest
-scouter_collector_instance: host.docker.internal
-scouter_reporter_interval: 10
-scouter_ingest_api_key: api-key
-
-gpu_memory_utilization: 0.7
-limit_mm_per_prompt_video: 0
-scheduling_policy: priority
-tool_call_parser: hermes
-generation_config: auto
-override_generation_config:
-  max_new_tokens: 16384
+engine: vllm
+vllm_args:
+- --gpu-memory-utilization
+- 0.7
+- --limit-mm-per-prompt.video
+- 0
+- --scheduling-policy
+- priority
+- --tool-call-parser
+- hermes
+- --generation-config
+- auto
+- --override-generation-config
+- max_new_tokens: 16384
   presence_penalty: 1.5
   temperature: 0.7
   top_p: 0.8
   top_k: 20
   min_p: 0
-
-trust_remote_code: true
-async_scheduling: true
-enable_auto_tool_choice: true
+- --trust-remote-code
+- --async-scheduling
+- --enable-auto-tool-choice
+sglang_args: []
+api_key: sk-
+vllm_flashinfer_moe_backend: throughput
+vllm_port: 8000
+vllm_host: 0.0.0.0
+onwards_port: 3000
+prometheus_port: 9090
+prometheus_version: v2.51.2
+scouter_version: latest
+scouter_collector_instance: host.docker.internal
+scouter_reporter_interval: 10
+scouter_ingest_api_key: api-key

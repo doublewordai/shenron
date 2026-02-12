@@ -7,7 +7,7 @@ Shenron now ships as a config-driven generator for production LLM docker-compose
 - `.generated/onwards_config.json`
 - `.generated/prometheus.yml`
 - `.generated/scouter_reporter.env`
-- `.generated/vllm_start.sh`
+- `.generated/engine_start.sh`
 
 ## Quick Start
 
@@ -38,6 +38,13 @@ Available starter configs:
 - `configs/Qwen235-A22B-cu130-TP2.yml`
 
 This file uses the same defaults that were previously hardcoded in `docker/run_docker_compose.sh`.
+
+Engine selection and args:
+- `engine`: `vllm` or `sglang` (default: `vllm`)
+- `vllm_args`: vLLM CLI args appended after core settings. Use this for `--gpu-memory-utilization`, `--scheduling-policy`, `--tool-call-parser`, `--override-generation-config`, etc.
+- `sglang_args`: SGLang CLI args appended after core settings (use for `--tp`, `--dp`, `--ep`, `--enable-dp-attention`, etc.)
+
+`vllm_args` and `sglang_args` accept YAML scalars (string/number/bool). If you need to pass a structured value (like `--override-generation-config`), provide a YAML mapping and it will be JSON-encoded.
 
 ## Generated Compose Behavior
 

@@ -72,7 +72,8 @@ RUN uv venv /opt/shenron/.venv && \
     uv pip install vllm==0.13.0 --torch-backend=cu129 && \
     python -c "import torch; assert torch.cuda._is_compiled(), 'Expected CUDA-enabled torch'; print(torch.__version__, torch.version.cuda)" && \
     uv pip install flashinfer-cubin==0.5.3 flashinfer-python==0.5.3 && \
-    uv pip install flashinfer-jit-cache==0.5.3 --index-url https://flashinfer.ai/whl/cu129
+    uv pip install flashinfer-jit-cache==0.5.3 --index-url https://flashinfer.ai/whl/cu129 && \
+    uv pip install sglang==0.5.8.post1
 
 
 # ============================================================

@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use serde_yaml::Value as YamlValue;
 use std::ffi::OsStr;
 use std::fmt::Write as _;
 use std::fs;
@@ -51,6 +52,9 @@ pub struct ShenronConfig {
     pub tensor_parallel_size: u16,
     pub shenron_version: String,
     pub onwards_version: String,
+    pub engine: Engine,
+    pub vllm_args: Vec<YamlValue>,
+    pub sglang_args: Vec<YamlValue>,
 
     pub api_key: String,
     pub vllm_flashinfer_moe_backend: String,
@@ -66,17 +70,49 @@ pub struct ShenronConfig {
     pub scouter_collector_url: Option<String>,
     pub scouter_reporter_interval: u32,
     pub scouter_ingest_api_key: String,
+}
 
-    pub gpu_memory_utilization: f32,
-    pub limit_mm_per_prompt_video: u32,
-    pub scheduling_policy: String,
-    pub tool_call_parser: String,
-    pub generation_config: String,
-    pub override_generation_config: serde_json::Value,
-    pub trust_remote_code: bool,
-    pub async_scheduling: bool,
-    pub enable_expert_parallel: bool,
-    pub enable_auto_tool_choice: bool,
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum Engine {
+    Vllm,
+    Sglang,
+}
+
+impl Default for Engine {
+    fn default() -> Self {
+        Engine::Vllm
+    }
+}
+
+fn default_vllm_args() -> Vec<YamlValue> {
+    let override_value = serde_yaml::to_value(json!({
+        "max_new_tokens": 16384,
+        "presence_penalty": 1.5,
+        "temperature": 0.7,
+        "top_p": 0.8,
+        "top_k": 20,
+        "min_p": 0,
+    }))
+    .expect("serialize override generation config");
+
+    vec![
+        YamlValue::String("--gpu-memory-utilization".to_string()),
+        serde_yaml::to_value(0.7).expect("gpu_memory_utilization"),
+        YamlValue::String("--limit-mm-per-prompt.video".to_string()),
+        serde_yaml::to_value(0).expect("limit_mm_per_prompt_video"),
+        YamlValue::String("--scheduling-policy".to_string()),
+        YamlValue::String("priority".to_string()),
+        YamlValue::String("--tool-call-parser".to_string()),
+        YamlValue::String("hermes".to_string()),
+        YamlValue::String("--generation-config".to_string()),
+        YamlValue::String("auto".to_string()),
+        YamlValue::String("--override-generation-config".to_string()),
+        override_value,
+        YamlValue::String("--trust-remote-code".to_string()),
+        YamlValue::String("--async-scheduling".to_string()),
+        YamlValue::String("--enable-auto-tool-choice".to_string()),
+    ]
 }
 
 impl Default for ShenronConfig {
@@ -87,6 +123,9 @@ impl Default for ShenronConfig {
             tensor_parallel_size: 1,
             shenron_version: "latest".to_string(),
             onwards_version: "latest".to_string(),
+            engine: Engine::Vllm,
+            vllm_args: default_vllm_args(),
+            sglang_args: Vec::new(),
             api_key: "sk-".to_string(),
             vllm_flashinfer_moe_backend: "throughput".to_string(),
             vllm_port: 8000,
@@ -99,23 +138,6 @@ impl Default for ShenronConfig {
             scouter_collector_url: None,
             scouter_reporter_interval: 10,
             scouter_ingest_api_key: "api-key".to_string(),
-            gpu_memory_utilization: 0.7,
-            limit_mm_per_prompt_video: 0,
-            scheduling_policy: "priority".to_string(),
-            tool_call_parser: "hermes".to_string(),
-            generation_config: "auto".to_string(),
-            override_generation_config: json!({
-                "max_new_tokens": 16384,
-                "presence_penalty": 1.5,
-                "temperature": 0.7,
-                "top_p": 0.8,
-                "top_k": 20,
-                "min_p": 0,
-            }),
-            trust_remote_code: true,
-            async_scheduling: true,
-            enable_expert_parallel: false,
-            enable_auto_tool_choice: true,
         }
     }
 }
@@ -135,11 +157,6 @@ impl ShenronConfig {
         if self.tensor_parallel_size == 0 {
             return Err(ShenronError::Validation(
                 "tensor_parallel_size must be greater than 0".to_string(),
-            ));
-        }
-        if !(0.0..=1.0).contains(&self.gpu_memory_utilization) {
-            return Err(ShenronError::Validation(
-                "gpu_memory_utilization must be between 0 and 1".to_string(),
             ));
         }
         Ok(())
@@ -272,7 +289,7 @@ pub fn generate(config: &ShenronConfig, output_dir: &Path) -> Result<Vec<PathBuf
     let onwards_config_path = generated_dir.join("onwards_config.json");
     let prometheus_path = generated_dir.join("prometheus.yml");
     let scouter_env_path = generated_dir.join("scouter_reporter.env");
-    let vllm_start_path = generated_dir.join("vllm_start.sh");
+    let engine_start_path = generated_dir.join("engine_start.sh");
     let compose_path = output_dir.join("docker-compose.yml");
 
     write_atomic(
@@ -291,8 +308,8 @@ pub fn generate(config: &ShenronConfig, output_dir: &Path) -> Result<Vec<PathBuf
         false,
     )?;
     write_atomic(
-        &vllm_start_path,
-        render_vllm_start(config)?.as_bytes(),
+        &engine_start_path,
+        render_engine_start(config)?.as_bytes(),
         true,
     )?;
     write_atomic(&compose_path, render_compose(config).as_bytes(), false)?;
@@ -302,7 +319,7 @@ pub fn generate(config: &ShenronConfig, output_dir: &Path) -> Result<Vec<PathBuf
         onwards_config_path,
         prometheus_path,
         scouter_env_path,
-        vllm_start_path,
+        engine_start_path,
     ])
 }
 
@@ -381,9 +398,14 @@ fn render_scouter_reporter_env(config: &ShenronConfig) -> String {
     )
 }
 
-fn render_vllm_start(config: &ShenronConfig) -> Result<String, ShenronError> {
-    let override_json = serde_json::to_string(&config.override_generation_config)?;
+fn render_engine_start(config: &ShenronConfig) -> Result<String, ShenronError> {
+    match config.engine {
+        Engine::Vllm => render_vllm_start(config),
+        Engine::Sglang => render_sglang_start(config),
+    }
+}
 
+fn render_vllm_start(config: &ShenronConfig) -> Result<String, ShenronError> {
     let mut args = vec![
         "--model".to_string(),
         config.model_name.clone(),
@@ -391,34 +413,17 @@ fn render_vllm_start(config: &ShenronConfig) -> Result<String, ShenronError> {
         config.vllm_port.to_string(),
         "--host".to_string(),
         config.vllm_host.clone(),
-        "--gpu-memory-utilization".to_string(),
-        config.gpu_memory_utilization.to_string(),
         "--tensor-parallel-size".to_string(),
         config.tensor_parallel_size.to_string(),
-        "--limit-mm-per-prompt.video".to_string(),
-        config.limit_mm_per_prompt_video.to_string(),
-        "--scheduling-policy".to_string(),
-        config.scheduling_policy.clone(),
-        "--tool-call-parser".to_string(),
-        config.tool_call_parser.clone(),
-        "--generation-config".to_string(),
-        config.generation_config.clone(),
-        "--override-generation-config".to_string(),
-        override_json,
     ];
 
-    if config.trust_remote_code {
-        args.push("--trust-remote-code".to_string());
-    }
-    if config.async_scheduling {
-        args.push("--async-scheduling".to_string());
-    }
-    if config.enable_expert_parallel {
-        args.push("--enable-expert-parallel".to_string());
-    }
-    if config.enable_auto_tool_choice {
-        args.push("--enable-auto-tool-choice".to_string());
-    }
+    args.extend(
+        config
+            .vllm_args
+            .iter()
+            .map(yaml_arg_to_string)
+            .collect::<Result<Vec<_>, _>>()?,
+    );
 
     let joined = args
         .iter()
@@ -435,10 +440,54 @@ fn render_vllm_start(config: &ShenronConfig) -> Result<String, ShenronError> {
     ))
 }
 
+fn render_sglang_start(config: &ShenronConfig) -> Result<String, ShenronError> {
+    let mut args = vec![
+        "--model-path".to_string(),
+        config.model_name.clone(),
+        "--port".to_string(),
+        config.vllm_port.to_string(),
+        "--host".to_string(),
+        config.vllm_host.clone(),
+    ];
+    args.extend(
+        config
+            .sglang_args
+            .iter()
+            .map(yaml_arg_to_string)
+            .collect::<Result<Vec<_>, _>>()?,
+    );
+
+    let joined = args
+        .iter()
+        .map(|a| quote_arg(a))
+        .collect::<Result<Vec<_>, _>>()?
+        .join(" ");
+
+    Ok(format!(
+        "#!/usr/bin/env bash\nset -euo pipefail\n\nexec python -m sglang.launch_server {}\n",
+        joined
+    ))
+}
+
 fn quote_arg(value: &str) -> Result<String, ShenronError> {
     shlex::try_quote(value)
         .map(|quoted| quoted.to_string())
         .map_err(|_| ShenronError::Quote(value.to_string()))
+}
+
+fn yaml_arg_to_string(value: &YamlValue) -> Result<String, ShenronError> {
+    match value {
+        YamlValue::Null => Err(ShenronError::Validation(
+            "args entries may not be null".to_string(),
+        )),
+        YamlValue::Bool(value) => Ok(value.to_string()),
+        YamlValue::Number(value) => Ok(value.to_string()),
+        YamlValue::String(value) => Ok(value.clone()),
+        YamlValue::Sequence(_) | YamlValue::Mapping(_) => {
+            serde_json::to_string(value).map_err(ShenronError::Json)
+        }
+        YamlValue::Tagged(tagged) => yaml_arg_to_string(&tagged.value),
+    }
 }
 
 fn render_compose(config: &ShenronConfig) -> String {
@@ -459,7 +508,7 @@ fn render_compose(config: &ShenronConfig) -> String {
     let _ = writeln!(out, "        hard: 524288");
     let _ = writeln!(
         out,
-        "    command: [\"bash\",\"-lc\",\"source /opt/shenron/.venv/bin/activate && exec bash /generated/vllm_start.sh\"]"
+        "    command: [\"bash\",\"-lc\",\"source /opt/shenron/.venv/bin/activate && exec bash /generated/engine_start.sh\"]"
     );
     let _ = writeln!(out, "    volumes:");
     let _ = writeln!(
@@ -562,7 +611,7 @@ mod tests {
         assert!(dir.path().join(".generated/onwards_config.json").exists());
         assert!(dir.path().join(".generated/prometheus.yml").exists());
         assert!(dir.path().join(".generated/scouter_reporter.env").exists());
-        assert!(dir.path().join(".generated/vllm_start.sh").exists());
+        assert!(dir.path().join(".generated/engine_start.sh").exists());
     }
 
     #[test]
@@ -588,8 +637,25 @@ mod tests {
     #[test]
     fn vllm_start_includes_expert_parallel() {
         let mut config = ShenronConfig::default();
-        config.enable_expert_parallel = true;
+        config
+            .vllm_args
+            .push(YamlValue::String("--enable-expert-parallel".to_string()));
         let script = render_vllm_start(&config).expect("render");
         assert!(script.contains("--enable-expert-parallel"));
+    }
+
+    #[test]
+    fn sglang_start_uses_sglang_args() {
+        let mut config = ShenronConfig::default();
+        config.engine = Engine::Sglang;
+        config.sglang_args = vec![
+            YamlValue::String("--tp".to_string()),
+            serde_yaml::to_value(2).expect("tp value"),
+            YamlValue::String("--enable-dp-attention".to_string()),
+        ];
+        let script = render_engine_start(&config).expect("render");
+        assert!(script.contains("sglang.launch_server"));
+        assert!(script.contains("--tp"));
+        assert!(script.contains("--enable-dp-attention"));
     }
 }

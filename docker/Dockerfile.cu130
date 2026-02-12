@@ -18,7 +18,10 @@ RUN uv venv /opt/shenron/.venv && \
     uv pip install "https://github.com/vllm-project/vllm/releases/download/v0.13.0/vllm-0.13.0%2Bcu130-cp38-abi3-manylinux_2_35_x86_64.whl" \
         --index-strategy unsafe-best-match \
         --extra-index-url https://download.pytorch.org/whl/cu130 && \
-    uv pip install flashinfer-cubin==0.5.3
+    uv pip install flashinfer-cubin==0.5.3 && \
+    uv pip install sglang==0.5.8.post1 && \
+    SGL_KERNEL_VERSION="$(python -c 'import sgl_kernel; print(sgl_kernel.__version__)')" && \
+    uv pip install "https://github.com/sgl-project/whl/releases/download/v${SGL_KERNEL_VERSION}/sgl_kernel-${SGL_KERNEL_VERSION}+cu130-cp310-abi3-manylinux2014_x86_64.whl"
 
 # ============================================================
 # Stage 3: Final Runtime Image

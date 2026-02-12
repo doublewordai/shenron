@@ -64,7 +64,8 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
 RUN uv venv /opt/shenron/.venv && \
     . /opt/shenron/.venv/bin/activate && \
     uv pip install vllm==0.13.0 --torch-backend=auto && \
-    uv pip install flashinfer-cubin==0.5.3 flashinfer-python==0.5.3
+    uv pip install flashinfer-cubin==0.5.3 flashinfer-python==0.5.3 && \
+    uv pip install sglang==0.5.8.post1
 
 # ============================================================
 # Stage 4: Final Runtime Image
