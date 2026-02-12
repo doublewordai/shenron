@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/doublewordai/shenron/compare/v0.8.0...v0.8.1) (2026-02-12)
+
+
+### Bug Fixes
+
+* note release-please triggers ([#37](https://github.com/doublewordai/shenron/issues/37)) ([b25fcf9](https://github.com/doublewordai/shenron/commit/b25fcf9bf72459d331be91fd1eefd518216551b3))
+
 ## [0.8.0](https://github.com/doublewordai/shenron/compare/v0.7.0...v0.8.0) (2026-02-12)
 
 
