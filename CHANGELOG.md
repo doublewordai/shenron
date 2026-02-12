@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/doublewordai/shenron/compare/v0.6.3...v0.7.0) (2026-02-11)
+
+
+### Features
+
+* add CUDA 12.9/13 presets for Qwen model configs ([9c00382](https://github.com/doublewordai/shenron/commit/9c0038237dc5a92f4f2a7ac9feb7b77e13ed993c))
+* add qwen config presets for cu129 and cu130 ([25df0c3](https://github.com/doublewordai/shenron/commit/25df0c3525b14cce2a9bbe3c26800872f5960db4))
+
 ## [0.6.3](https://github.com/doublewordai/shenron/compare/v0.6.2...v0.6.3) (2026-02-11)
 
 
