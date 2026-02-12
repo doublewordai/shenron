@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.9.0](https://github.com/doublewordai/shenron/compare/v0.8.2...v0.9.0) (2026-02-12)
+
+
+### Features
+
+* keep latest tag for shenron_version ([b1c1d26](https://github.com/doublewordai/shenron/commit/b1c1d267b5d92d9ca19a2609abc16b620bb76648))
+* keep latest tag for shenron_version ([5e37979](https://github.com/doublewordai/shenron/commit/5e37979a89810897c4372625323febbffa8fa411))
+* set cu126 torch backend ([ef91a12](https://github.com/doublewordai/shenron/commit/ef91a12a35d2d5ab36a6ff766db481dd7ebc4c0d))
+* set cu126 torch backend ([cbb4c45](https://github.com/doublewordai/shenron/commit/cbb4c452ad5c2254d835b8d079943b9f954ed24c))
+* update CUDA 13 image for B300 ([80a56e9](https://github.com/doublewordai/shenron/commit/80a56e9a42e525a16580f8b8c29865a4cd50b770))
+
+
+### Bug Fixes
+
+* CUDA 13 image for B300 ([67f47b1](https://github.com/doublewordai/shenron/commit/67f47b1d306156bb78c74c7b4a1dd44b9507c21a))
+
 ## [0.8.2](https://github.com/doublewordai/shenron/compare/v0.8.1...v0.8.2) (2026-02-12)
 
 
