@@ -172,6 +172,32 @@ def _download_file(url: str, destination: Path) -> None:
         out.write(resp.read())
 
 
+def _yaml_scalar(value: str) -> str:
+    return json.dumps(value)
+
+
+def _set_config_scalar(config_path: Path, key: str, value: str) -> None:
+    lines = config_path.read_text(encoding="utf-8").splitlines()
+    updated_lines: list[str] = []
+    replaced = False
+
+    for line in lines:
+        if line and not line.startswith(" ") and ":" in line:
+            current_key = line.split(":", 1)[0]
+            if current_key == key:
+                updated_lines.append(f"{key}: {_yaml_scalar(value)}")
+                replaced = True
+                continue
+        updated_lines.append(line)
+
+    if not replaced:
+        if updated_lines and updated_lines[-1].strip():
+            updated_lines.append("")
+        updated_lines.append(f"{key}: {_yaml_scalar(value)}")
+
+    config_path.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")
+
+
 def _run_generate(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="shenron",
@@ -206,7 +232,7 @@ def _run_get(argv: list[str]) -> int:
     parser.add_argument(
         "--release",
         default=None,
-        help="Release tag (e.g. v0.6.3 or 0.6.3). Use 'latest' for newest release. Default: installed shenron version.",
+        help="Release tag (e.g. v0.6.3 or 0.6.3). Use 'latest' for newest release and shenron_version=latest. Default: installed shenron version.",
     )
     parser.add_argument(
         "--repo",
@@ -241,6 +267,7 @@ def _run_get(argv: list[str]) -> int:
 
     args = parser.parse_args(argv)
 
+    use_latest_tag = args.release == "latest"
     release_tag = _resolve_release_tag(args.release, args.repo)
     base_url = _as_asset_base_url(args.base_url or _release_download_base(args.repo, release_tag))
 
@@ -277,6 +304,9 @@ def _run_get(argv: list[str]) -> int:
         _download_file(config_url, config_path)
     except (HTTPError, URLError) as exc:
         raise CliError(f"failed to download config from {config_url}: {exc}") from exc
+
+    if use_latest_tag:
+        _set_config_scalar(config_path, "shenron_version", "latest")
 
     generated = generate(str(config_path), str(out_dir))
 
