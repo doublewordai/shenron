@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/doublewordai/shenron/compare/v0.9.0...v0.10.0) (2026-02-12)
+
+
+### Features
+
+* add shenron get overrides ([b3c4a8c](https://github.com/doublewordai/shenron/commit/b3c4a8ceb7a9695469b85fc2ef4c9606827717f0))
+
 ## [0.9.0](https://github.com/doublewordai/shenron/compare/v0.8.2...v0.9.0) (2026-02-12)
 
 
