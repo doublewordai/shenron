@@ -128,7 +128,7 @@ jobs:
             type=raw,value=${{ env.VERSION }}
             type=sha,event=branch,prefix=sha-
             type=ref,event=pr
-            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+            type=raw,value=latest,enable=${{ (github.event_name == 'release') || (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') }}
 
       - name: Verify Depot project configuration
         if: (github.event_name == 'push' || github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (steps.changes.outputs.docker_cuda == 'true' || steps.changes.outputs.release_version == 'true' || steps.changes.outputs.ci_config == 'true' || inputs.force_docker_build) && !vars.DEPOT_PROJECT_ID
