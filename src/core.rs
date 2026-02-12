@@ -75,6 +75,7 @@ pub struct ShenronConfig {
     pub override_generation_config: serde_json::Value,
     pub trust_remote_code: bool,
     pub async_scheduling: bool,
+    pub enable_expert_parallel: bool,
     pub enable_auto_tool_choice: bool,
 }
 
@@ -113,6 +114,7 @@ impl Default for ShenronConfig {
             }),
             trust_remote_code: true,
             async_scheduling: true,
+            enable_expert_parallel: false,
             enable_auto_tool_choice: true,
         }
     }
@@ -411,6 +413,9 @@ fn render_vllm_start(config: &ShenronConfig) -> Result<String, ShenronError> {
     if config.async_scheduling {
         args.push("--async-scheduling".to_string());
     }
+    if config.enable_expert_parallel {
+        args.push("--enable-expert-parallel".to_string());
+    }
     if config.enable_auto_tool_choice {
         args.push("--enable-auto-tool-choice".to_string());
     }
@@ -578,5 +583,13 @@ mod tests {
         assert!(compose.contains("ghcr.io/doublewordai/shenron:latest-cu126"));
         assert!(compose.contains("ghcr.io/doublewordai/onwards:latest"));
         assert!(!compose.contains("${SHENRON_VERSION}"));
+    }
+
+    #[test]
+    fn vllm_start_includes_expert_parallel() {
+        let mut config = ShenronConfig::default();
+        config.enable_expert_parallel = true;
+        let script = render_vllm_start(&config).expect("render");
+        assert!(script.contains("--enable-expert-parallel"));
     }
 }
