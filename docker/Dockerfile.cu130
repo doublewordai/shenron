@@ -18,7 +18,8 @@ RUN uv venv /opt/shenron/.venv && \
     uv pip install "https://github.com/vllm-project/vllm/releases/download/v0.13.0/vllm-0.13.0%2Bcu130-cp38-abi3-manylinux_2_35_x86_64.whl" \
         --index-strategy unsafe-best-match \
         --extra-index-url https://download.pytorch.org/whl/cu130 && \
-    uv pip install flashinfer-cubin==0.5.3
+    uv pip install flashinfer-cubin==0.5.3 && \
+    uv pip install --upgrade "triton>=3.5.1"
 
 # ============================================================
 # Stage 3: Final Runtime Image
@@ -39,6 +40,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # Environment - NVSHMEM is now installed via pip
 ENV PATH="/opt/shenron/.venv/bin:${PATH}"
 ENV VLLM_HAS_FLASHINFER_CUBIN=1
+ENV TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas
 
 # DeepEP installation - pip-installed NVSHMEM is auto-discovered
 # Symlink CCCL headers so cuda/std/tuple is found (CUDA 13.0 relocated these)
