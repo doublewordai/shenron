@@ -14,9 +14,15 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
+      - name: Verify release token
+        if: ${{ !secrets.RELEASE_PLEASE_TOKEN }}
+        run: |
+          echo "::error::RELEASE_PLEASE_TOKEN secret is required so release-please can trigger downstream workflows."
+          echo "Create a classic PAT with repo scope and add it as RELEASE_PLEASE_TOKEN."
+          exit 1
       - uses: googleapis/release-please-action@v4
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           skip-github-release: false
