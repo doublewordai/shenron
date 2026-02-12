@@ -13,12 +13,13 @@ Shenron now ships as a config-driven generator for production LLM docker-compose
 
 ```bash
 uv pip install shenron
-wget https://github.com/doublewordai/shenron/releases/download/v0.6.0/Qwen06B-cu126-TP1.yml
-shenron .
+shenron get
 docker compose up -d
 ```
 
-`shenron .` expects exactly one config YAML (`*.yml` or `*.yaml`) in the current directory, unless you pass a config file path directly.
+`shenron get` reads a per-release config index asset, shows available configs with arrow-key selection, downloads the chosen config, and generates deployment artifacts in the current directory.
+
+`shenron .` still works and expects exactly one config YAML (`*.yml` or `*.yaml`) in the current directory, unless you pass a config file path directly.
 
 ## Configs
 
@@ -59,6 +60,7 @@ shenron configs/Qwen06B-cu126-TP1.yml --output-dir /tmp/shenron-test
 ## Release Automation
 
 - `release-assets.yaml` publishes stamped config files (`*.yml`) as release assets.
+- `release-assets.yaml` also publishes `configs-index.txt`, which powers `shenron get`.
 - `python-release.yaml` builds/publishes the `shenron` package to PyPI on release tags.
 - Docker image build/push via Depot remains in `ci.yaml` and still triggers when `docker/Dockerfile.cu*` or `VERSION` changes.
 

@@ -18,6 +18,7 @@ python3 -m pip install -e "$ROOT_DIR"
 
 run_test "$ROOT_DIR/tests/test_generate_from_config.sh"
 run_test "$ROOT_DIR/tests/test_compose_generation.sh"
+run_test "$ROOT_DIR/tests/test_get_command.sh"
 
 if command -v docker >/dev/null 2>&1; then
   run_test "$ROOT_DIR/tests/test_docker_compose.sh"

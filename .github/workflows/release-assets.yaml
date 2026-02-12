@@ -46,10 +46,11 @@ jobs:
             out="$(basename "$cfg")"
             sed -E "s|^shenron_version:.*$|shenron_version: ${version}|g" "$cfg" > "$out"
           done
+          ls -1 *.yml | sort > configs-index.txt
 
       - name: Verify assets locally (act)
         if: ${{ env.ACT }}
-        run: ls -la ./*.yml
+        run: ls -la ./*.yml ./configs-index.txt
 
       - name: Upload assets
         if: ${{ !env.ACT && !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
@@ -59,3 +60,4 @@ jobs:
           tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release_tag }}
           files: |
             *.yml
+            configs-index.txt
