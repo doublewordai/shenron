@@ -1,80 +1,10 @@
-name: Create Release
+name: Create Release (Deprecated)
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
-  publish-release:
+  notice:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Determine release tag from VERSION
-        id: detect
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
-        run: |
-          tag="v$(tr -d '[:space:]' < VERSION)"
-          target_sha="$(git log -n 1 --format=%H -- VERSION)"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
-          if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Release $tag already exists; skipping."
-          else
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Verify release token
-        if: steps.detect.outputs.run == 'true'
-        run: |
-          if [[ -z "${{ secrets.RELEASE_TOKEN }}" ]]; then
-            echo "::error::Missing RELEASE_TOKEN secret."
-            exit 1
-          fi
-
-      - name: Create GitHub release from VERSION
-        if: steps.detect.outputs.run == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: |
-          tag="${{ steps.detect.outputs.tag }}"
-          gh release create "$tag" \
-            --repo "${{ github.repository }}" \
-            --target "${{ steps.detect.outputs.target_sha }}" \
-            --title "$tag" \
-            --generate-notes
-
-      - name: Mark corresponding release PR as tagged
-        if: steps.detect.outputs.run == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: |
-          version="${{ steps.detect.outputs.tag }}"
-          version="${version#v}"
-          pr_number="$(
-            gh pr list \
-              --repo "${{ github.repository }}" \
-              --state merged \
-              --search "chore(main): release ${version} in:title" \
-              --json number \
-              --jq '.[0].number // empty'
-          )"
-
-          if [[ -z "$pr_number" ]]; then
-            echo "No merged release PR found for ${version}; skipping label updates."
-            exit 0
-          fi
-
-          gh pr edit "$pr_number" \
-            --repo "${{ github.repository }}" \
-            --remove-label "autorelease: pending" \
-            --add-label "autorelease: tagged"
+      - run: echo "This workflow is deprecated. Release Please now creates GitHub releases directly."
