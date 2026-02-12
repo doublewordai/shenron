@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.0](https://github.com/doublewordai/shenron/compare/v0.7.0...v0.8.0) (2026-02-12)
+
+
+### Features
+
+* add enable_expert_parallel config flag ([bb83726](https://github.com/doublewordai/shenron/commit/bb83726aad45f9cd303b1f445d73626bf53242b5))
+* add enable_expert_parallel flag ([05f7748](https://github.com/doublewordai/shenron/commit/05f7748c401261425b1221e3658e39f06d227a3e))
+* add interactive shenron get command for release configs ([315b7a9](https://github.com/doublewordai/shenron/commit/315b7a92d5170230bc97571cb37c764ca9c9c862))
+* add Qwen235 TP2 config for cu129 ([eb88e90](https://github.com/doublewordai/shenron/commit/eb88e905c22b70c4d7be7c1f8e482a70d2271d7f))
+* add Qwen235 TP2 cu129 production config ([462bdf0](https://github.com/doublewordai/shenron/commit/462bdf0ecc3e07a41c3d4100cb01353ca8becfc0))
+* add shenron get for release config selection ([fbda3d7](https://github.com/doublewordai/shenron/commit/fbda3d73c5b6a4e23f5c532cef781f14a3228351))
+
+
+### Bug Fixes
+
+* normalize TTY line endings in get picker ([528bd4a](https://github.com/doublewordai/shenron/commit/528bd4a14ba7242de64812835bac59646fff0c9a))
+* render shenron get picker lines correctly ([ca3eeb6](https://github.com/doublewordai/shenron/commit/ca3eeb67f3c8b6230c5d1a4a7830a79ac1684c73))
+
 ## [0.7.0](https://github.com/doublewordai/shenron/compare/v0.6.3...v0.7.0) (2026-02-11)
 
 
