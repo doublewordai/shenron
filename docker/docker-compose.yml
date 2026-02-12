@@ -10,7 +10,7 @@ services:
     image: ghcr.io/doublewordai/shenron:${SHENRON_VERSION}-cu${CU:-126}
     ulimits: *common-ulimits
     restart: unless-stopped
-    command: ["bash","-lc","source /opt/shenron/.venv/bin/activate && exec bash /generated/vllm_start.sh"]
+    command: ["bash","-lc","source /opt/shenron/.venv/bin/activate && exec bash /generated/engine_start.sh"]
     volumes:
       - $HOME/.cache/huggingface:/root/.cache/huggingface
       - ./.generated:/generated:ro

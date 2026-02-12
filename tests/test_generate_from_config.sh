@@ -14,7 +14,7 @@ for cfg in "$ROOT_DIR"/configs/*.yml; do
     "$workdir/.generated/onwards_config.json"
     "$workdir/.generated/prometheus.yml"
     "$workdir/.generated/scouter_reporter.env"
-    "$workdir/.generated/vllm_start.sh"
+    "$workdir/.generated/engine_start.sh"
   )
 
   for f in "${required[@]}"; do

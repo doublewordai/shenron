@@ -22,7 +22,7 @@ required=(
   "$work_dir/.generated/onwards_config.json"
   "$work_dir/.generated/prometheus.yml"
   "$work_dir/.generated/scouter_reporter.env"
-  "$work_dir/.generated/vllm_start.sh"
+  "$work_dir/.generated/engine_start.sh"
 )
 
 for f in "${required[@]}"; do
