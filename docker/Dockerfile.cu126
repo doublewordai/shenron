@@ -63,7 +63,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
 # Needed for FP8-MOE models
 RUN uv venv /opt/shenron/.venv && \
     . /opt/shenron/.venv/bin/activate && \
-    uv pip install vllm==0.13.0 --torch-backend=auto && \
+    uv pip install vllm==0.13.0 --torch-backend=cu126 && \
     uv pip install flashinfer-cubin==0.5.3 flashinfer-python==0.5.3
 
 # ============================================================
