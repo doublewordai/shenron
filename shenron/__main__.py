@@ -198,6 +198,46 @@ def _set_config_scalar(config_path: Path, key: str, value: str) -> None:
     config_path.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")
 
 
+def _apply_config_overrides(
+    config_path: Path,
+    api_key: Optional[str],
+    scouter_api_key: Optional[str],
+    scouter_collector_instance: Optional[str],
+) -> None:
+    overrides = {}
+    if api_key is not None:
+        overrides["api_key"] = api_key
+    if scouter_api_key is not None:
+        overrides["scouter_ingest_api_key"] = scouter_api_key
+    if scouter_collector_instance is not None:
+        overrides["scouter_collector_instance"] = scouter_collector_instance
+
+    if not overrides:
+        return
+
+    lines = config_path.read_text(encoding="utf-8").splitlines()
+    updated_lines: list[str] = []
+    seen = set()
+
+    for line in lines:
+        if line and not line.startswith(" ") and ":" in line:
+            key = line.split(":", 1)[0]
+            if key in overrides:
+                updated_lines.append(f"{key}: {_yaml_scalar(overrides[key])}")
+                seen.add(key)
+                continue
+        updated_lines.append(line)
+
+    for key, value in overrides.items():
+        if key in seen:
+            continue
+        if updated_lines and updated_lines[-1].strip():
+            updated_lines.append("")
+        updated_lines.append(f"{key}: {_yaml_scalar(value)}")
+
+    config_path.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")
+
+
 def _run_generate(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="shenron",
@@ -243,6 +283,23 @@ def _run_get(argv: list[str]) -> int:
         "--name",
         default=None,
         help="Config filename to download directly (skips interactive picker).",
+    )
+    parser.add_argument(
+        "--api-key",
+        default=None,
+        help="Override api_key in the downloaded config.",
+    )
+    parser.add_argument(
+        "--scouter-api-key",
+        default=None,
+        help="Override scouter_ingest_api_key in the downloaded config.",
+    )
+    parser.add_argument(
+        "--scouter-colector-instance",
+        "--scouter-collector-instance",
+        dest="scouter_collector_instance",
+        default=None,
+        help="Override scouter_collector_instance in the downloaded config.",
     )
     parser.add_argument(
         "--dir",
@@ -307,6 +364,12 @@ def _run_get(argv: list[str]) -> int:
 
     if use_latest_tag:
         _set_config_scalar(config_path, "shenron_version", "latest")
+    _apply_config_overrides(
+        config_path,
+        api_key=args.api_key,
+        scouter_api_key=args.scouter_api_key,
+        scouter_collector_instance=args.scouter_collector_instance,
+    )
 
     generated = generate(str(config_path), str(out_dir))
 
