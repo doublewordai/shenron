@@ -38,7 +38,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 # Environment - NVSHMEM is now installed via pip
 ENV PATH="/opt/shenron/.venv/bin:${PATH}"
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 ENV VLLM_HAS_FLASHINFER_CUBIN=1
 
 # DeepEP installation - pip-installed NVSHMEM is auto-discovered
@@ -54,3 +53,6 @@ RUN mkdir -p /var/run/sshd /root/.ssh && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config && \
     sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd && \
     ssh-keygen -A
+
+# Set runtime library paths after system utilities have run (avoids OpenSSL mismatch)
+ENV LD_LIBRARY_PATH=/opt/conda/lib:/opt/conda/lib/python3.11/site-packages/torch/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}

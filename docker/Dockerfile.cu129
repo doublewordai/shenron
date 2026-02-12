@@ -100,7 +100,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # NVSHMEM Environment
 ENV NVSHMEM_HOME=/opt/nvshmem-3.2.5
 ENV CUDA_HOME=/usr/local/cuda
-ENV LD_LIBRARY_PATH=${NVSHMEM_HOME}/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 ENV PATH="/opt/shenron/.venv/bin:/opt/hydra/bin:/usr/local/cuda/bin:${PATH}"
 ENV VLLM_HAS_FLASHINFER_CUBIN=1
 
@@ -115,3 +114,6 @@ RUN mkdir -p /var/run/sshd /root/.ssh && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config && \
     sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd && \
     ssh-keygen -A
+
+# Set runtime library paths after system utilities have run (avoids OpenSSL mismatch)
+ENV LD_LIBRARY_PATH=/opt/conda/lib:/opt/conda/lib/python3.11/site-packages/torch/lib:${NVSHMEM_HOME}/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
